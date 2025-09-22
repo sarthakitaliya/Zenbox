@@ -1,6 +1,6 @@
-# Zynbox 📥
+# Zenbox 📥
 
-Zynbox is an AI-powered Gmail attachment and email management platform. It intelligently categorizes, summarizes, and organizes your emails.
+Zenbox is an AI-powered Gmail attachment and email management platform. It intelligently categorizes, summarizes, and organizes your emails.
 
 ---
 

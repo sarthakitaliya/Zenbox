@@ -41,7 +41,7 @@ export const Hero = () => {
                             transition={{ delay: 0.7, duration: 0.8 }}
                             className="text-xl text-gray-700"
                         >
-                            Experience the future of email with Zynbox AI. Intelligent categorization, 
+                            Experience the future of email with Zenbox AI. Intelligent categorization, 
                             smart filtering, and automated responses powered by cutting-edge AI technology.
                         </motion.p>
                         <motion.div 
@@ -89,7 +89,7 @@ export const Hero = () => {
                         <div className="relative aspect-square w-full">
                             <Image
                                 src="https://images.unsplash.com/photo-1596526131083-e8c633c948d2?q=80&w=1200&auto=format&fit=crop"
-                                alt="Zynbox AI Email Management"
+                                alt="Zenbox AI Email Management"
                                 fill
                                 className="object-contain rounded-2xl"
                                 priority

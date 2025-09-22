@@ -43,7 +43,7 @@ export default function SignIn() {
               <FaEnvelope className="h-10 w-10 text-white" />
             </div>
             <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-              Welcome to Zynbox
+              Welcome to Zenbox
             </h2>
             <p className="mt-2 text-sm text-gray-600">
               Your unified email management solution
@@ -86,16 +86,6 @@ export default function SignIn() {
 
               {/* Features List */}
               <div className="mt-8 space-y-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <p className="ml-3 text-sm text-gray-600">
-                    Manage multiple email accounts in one place
-                  </p>
-                </div>
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">

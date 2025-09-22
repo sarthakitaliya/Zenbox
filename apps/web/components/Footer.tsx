@@ -128,7 +128,7 @@ export const Footer = () => {
                             transition={{ duration: 0.5 }}
                             className="text-gray-700 text-sm"
                         >
-                            © {new Date().getFullYear()} Zynbox. All rights reserved.
+                            © {new Date().getFullYear()} Zenbox. All rights reserved.
                         </motion.div>
                     </div>
                 </div>

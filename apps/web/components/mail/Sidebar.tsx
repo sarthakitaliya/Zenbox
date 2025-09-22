@@ -43,7 +43,7 @@ export default function Sidebar({ className }: { className?: string }) {
       className={`h-screen text-white flex flex-col justify-between p-4 w-[220px] ${className}`}
     >
       <div>
-        <h1 className="text-lg font-bold mb-5">Zynbox</h1>
+        <h1 className="text-lg font-bold mb-5">Zenbox</h1>
 
         {/* Profile */}
         <div className="flex items-center gap-3 mb-5">
