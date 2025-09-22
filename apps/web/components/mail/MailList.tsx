@@ -2,8 +2,9 @@ import { ParamValue } from "next/dist/server/request/params";
 import { MailNavbar } from "./MailNavbar";
 import { Email } from "./Email";
 import { useEffect } from "react";
-import { useEmailStore, useUIStore } from "@repo/store";
+import { useEmailStore, useAiStore, useUIStore } from "@repo/store";
 import { EmailSkeleton } from "./EmailListSkeleton";
+import { useParams } from "next/navigation";
 
 const dummyEmails = [
   {
@@ -92,19 +93,25 @@ const dummyEmails = [
   },
 ];
 
-export const MailList = ({ folder }: { folder: ParamValue }) => {
-  const { getEmails, setEmails, emails, loadingList } = useEmailStore();
-
+export const MailList = () => {
+  const { getEmails, setEmails, emails } = useEmailStore();
+  const { getcategorizeInitialEmails } = useAiStore();
+  const { loadingList } = useUIStore();
+  const params = useParams();
+  const folder = params.folder;
   useEffect(() => {
     console.log("Fetching emails for folder:", folder);
 
     const fetchEmails = async () => {
       try {
         if (emails.length > 0) {
-          setEmails([]); 
+          setEmails([]);
         }
-        const res: any[] = await getEmails(folder as string);
-        setEmails(res);
+        const res = await getcategorizeInitialEmails(10);
+        if (res.success) {
+          const emails: any[] = await getEmails(folder as string);
+          setEmails(emails);
+        }
       } catch (error) {
         console.error("Failed to fetch emails:", error);
       }
@@ -113,11 +120,11 @@ export const MailList = ({ folder }: { folder: ParamValue }) => {
   }, [folder]);
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <div className="sticky top-0 z-10">
         <MailNavbar />
       </div>
-      <div>
+      <div className="flex-1 overflow-y-auto scrollbar-custom">
         {loadingList ? (
           <>
             {Array.from({ length: 8 }).map((_, i) => (
@@ -127,7 +134,21 @@ export const MailList = ({ folder }: { folder: ParamValue }) => {
         ) : (
           <div className="py-2">
             {emails.length > 0 ? (
-              emails.map((email) => <Email key={email.id} email={email} />)
+              emails.map((email) => (
+                <Email 
+                  key={email.threadId} 
+                  email={{
+                    ...email,
+                    latest: email.latest
+                      ? {
+                          ...email.latest,
+                          senderEmail: email.latest.senderEmail ?? "",
+                        }
+                      : undefined,
+                  }}
+                  folder={folder} 
+                />
+              ))
             ) : (
               <div className="text-center text-gray-500">No emails found.</div>
             )}

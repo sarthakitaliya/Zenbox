@@ -1,25 +1,26 @@
-import { api } from "./axiosInstance.ts";
+import { api } from "./axiosInstance";
 import axios, { AxiosError } from "axios";
-import { handleError } from "./handleError.ts";
+import { handleError } from "./handleError";
 
 interface Category {
   id: string;
   name: string;
-  description?: string;
+  description: string;
   userId: string;
 }
 
 interface CategoryInput {
   name: string;
-  description?: string;
+  description: string;
+  icon?: string; // Optional icon field
 }
 
 
 
 
 const validateCategory = (category: CategoryInput): void => {
-  if (!category.name || category.name.trim() === "") {
-    throw new Error("Category name is required");
+  if (!category.name || category.name.trim() === "" || category.description.trim() === "") {
+    throw new Error("Name and description are required");
   }
   if (category.description && category.description.length > 100) {
     throw new Error("Description cannot exceed 100 characters");
@@ -64,6 +65,8 @@ const createCategory = async (category: CategoryInput): Promise<Category> => {
     const response = await api.post<Category>("/categories", category);
     return response.data;
   } catch (error) {
+    console.log(error);
+    
     return handleError(error);
   }
 }

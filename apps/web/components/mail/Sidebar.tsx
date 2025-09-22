@@ -78,6 +78,7 @@ export default function Sidebar({ className }: { className?: string }) {
               flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-800 transition text-sm
               ${pathname === href ? "bg-gray-800" : ""}
             `}
+              style={{ textDecoration: 'none' }}
             >
               <Icon className="w-4 h-4" />
               {name}
@@ -96,6 +97,7 @@ export default function Sidebar({ className }: { className?: string }) {
             flex items-center gap-3 px-2 py-2 rounded-md hover:bg-gray-800 transition text-sm
             ${pathname === href ? "bg-gray-800" : ""}
           `}
+            style={{ textDecoration: 'none' }}
           >
             <Icon className="w-4 h-4" />
             {name}

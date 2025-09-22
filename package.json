@@ -4,6 +4,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "prisma:generate": "cd packages/db && npx prisma generate && cd ../..",
+    "start:server": "cd apps/server && pnpm run start",
+    "start:fe": "cd apps/web && pnpm run start",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"

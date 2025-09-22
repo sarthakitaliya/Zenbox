@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { apiCategory } from "@repo/api-client/apis";
-import { useUIStore } from "./useUIStore.ts";
+import { useUIStore } from "./useUIStore";
 
 const { setLoading, setError, setMessage } = useUIStore.getState();
 export const useCategoryStore = create<State>((set) => ({
@@ -21,6 +21,8 @@ export const useCategoryStore = create<State>((set) => ({
     try {
       setLoading(true);
       const categories = await apiCategory.getCategories();
+      console.log("Fetched categories:", categories);
+
       set({ categories });
     } catch (error) {
       setError("Failed to fetch categories");
@@ -33,8 +35,9 @@ export const useCategoryStore = create<State>((set) => ({
       setLoading(true);
       const newCategory = await apiCategory.createCategory(categoryData);
       set((state) => ({ categories: [...state.categories, newCategory] }));
-    } catch (error) {
-      setError("Failed to create category");
+    } catch (error: Error | any) {
+      setError(error.message || "Failed to create category");
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -89,6 +92,10 @@ type category = {
   id: string;
   name: string;
   description?: string;
+  icon?: string;
+  _count?: {
+    emails: number;
+  };
 };
 type State = {
   categories: category[];
@@ -96,14 +103,15 @@ type State = {
   fetchCategories: () => Promise<void>;
   createCategory: (categoryData: {
     name: string;
-    description?: string;
+    description: string;
+    icon?: string;
   }) => Promise<void>;
   createCategories: (
-    categoriesData: { name: string; description?: string }[]
+    categoriesData: { name: string; description: string; icon?: string }[]
   ) => Promise<void>;
   updateCategory: (
     categoryId: string,
-    categoryData: { name: string; description?: string }
+    categoryData: { name: string; description: string }
   ) => Promise<void>;
   deleteCategory: (categoryId: string) => Promise<void>;
 };

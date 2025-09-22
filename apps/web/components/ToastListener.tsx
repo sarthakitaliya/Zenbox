@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useUIStore } from "@repo/store";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export default function ToastListener() {
   const { error, message, setError, setMessage } = useUIStore();
