@@ -5,48 +5,48 @@ services:
     build:
       context: .
       dockerfile: Docker/Dockerfile.server
-    container_name: sarthak100x/zynbox-backend
+    container_name: sarthak100x/zenbox-backend
     ports:
       - "3001:3001"
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/zynbox
+      DATABASE_URL: postgres://postgres:postgres@db:5432/zenbox
     networks:
-      - zynbox-net
+      - zenbox-net
 
   frontend:
     build:
       context: .
       dockerfile: Docker/Dockerfile.frontend
-    container_name: sarthak100x/zynbox-frontend
+    container_name: sarthak100x/zenbox-frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
     environment:
       NEXT_PUBLIC_API_URL: http://backend:3001
-      DATABASE_URL: postgres://postgres:postgres@db:5432/zynbox
+      DATABASE_URL: postgres://postgres:postgres@db:5432/zenbox
     networks:
-      - zynbox-net
+      - zenbox-net
 
   db:
     image: postgres
-    container_name: zynbox-db
+    container_name: zenbox-db
     restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: zynbox
+      POSTGRES_DB: zenbox
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - zynbox-net
+      - zenbox-net
 
 volumes:
   pgdata:
 
 networks:
-  zynbox-net:
+  zenbox-net:
