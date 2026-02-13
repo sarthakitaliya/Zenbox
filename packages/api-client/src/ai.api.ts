@@ -12,6 +12,17 @@ const categorizeInitialEmails = async (limit: number) => {
   }
 }
 
+const summarizeEmail = async (subject: string, content: string) => {
+  try {
+    const response = await api.post(`/ai/summarize-email`, { subject, content });
+    return response.data;
+  } catch (error) {
+    console.error("Error summarizing email:", error);
+    return handleError(error);
+  }
+}
+
 export const apiAI = {
-  categorizeInitialEmails
+  categorizeInitialEmails,
+  summarizeEmail
 };

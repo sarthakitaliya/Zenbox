@@ -2,6 +2,7 @@ import { prismaClient } from "@repo/db/client";
 import { NotFoundError } from "../utils/errors";
 import { gmailClient } from "../lib/gmailClient";
 import { categorizeEmailWithGemini } from "../ai/geminiCategorizer";
+import { generateResponse } from "../lib/gemini";
 
 type InitialCategorizationResult = {
   newlyCategorizedCount: number;
@@ -93,4 +94,22 @@ export const categorize_Initial_Emails = async (userId: string, limit: number = 
     throw new Error("Failed to categorize initial emails");
     
   }
+};
+
+export const summarize_Email = async (subject: string, content: string) => {
+  const prompt = `
+You are an email assistant. Summarize this email clearly and briefly.
+
+Rules:
+- Keep summary under 6 bullet points.
+- Capture key intent, any action items, and deadlines (if present).
+- Do not invent details.
+
+Subject: ${subject}
+Email Body:
+${content}
+  `;
+
+  const summary = await generateResponse(prompt);
+  return summary?.trim() || "No summary available.";
 };

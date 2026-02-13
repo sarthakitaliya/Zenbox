@@ -1,9 +1,9 @@
 import { MailNavbar } from "./MailNavbar";
 import { Email } from "./Email";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useEmailStore, useAiStore, useUIStore } from "@repo/store";
 import { EmailSkeleton } from "./EmailListSkeleton";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 const INITIAL_CATEGORIZATION_KEY = "zenbox:initial-categorization-attempted";
 
@@ -12,8 +12,10 @@ export const MailList = () => {
   const { getcategorizeInitialEmails } = useAiStore();
   const { loadingList } = useUIStore();
   const params = useParams();
+  const searchParams = useSearchParams();
   const folder = Array.isArray(params.folder) ? params.folder[0] : params.folder;
   const activeFolder = folder || "inbox";
+  const query = (searchParams.get("q") || "").trim().toLowerCase();
 
   useEffect(() => {
     console.log("Fetching emails for folder:", activeFolder);
@@ -41,6 +43,27 @@ export const MailList = () => {
     fetchEmails();
   }, [activeFolder, getEmails, getcategorizeInitialEmails]);
 
+  const visibleEmails = useMemo(() => {
+    if (!query) return emails;
+
+    return emails.filter((email) => {
+      const latest = email.latest;
+      const searchableText = [
+        latest?.subject,
+        latest?.snippet,
+        latest?.from,
+        latest?.senderName,
+        latest?.senderEmail,
+        email.categoryName,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(query);
+    });
+  }, [emails, query]);
+
   return (
     <div className="flex flex-col h-full">
       <div className="sticky top-0 z-10">
@@ -55,8 +78,8 @@ export const MailList = () => {
           </>
         ) : (
           <div className="py-2">
-            {emails.length > 0 ? (
-              emails.map((email) => (
+            {visibleEmails.length > 0 ? (
+              visibleEmails.map((email) => (
                 <Email 
                   key={email.threadId} 
                   email={{

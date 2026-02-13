@@ -1,12 +1,13 @@
-import { Funnel, ListFilter, Menu, RefreshCcw, Search } from "lucide-react";
+import { Funnel, ListFilter, Menu, RefreshCcw, Search, X } from "lucide-react";
 import Toggle from "./Toggle";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCategoryStore, useEmailStore, useUIStore } from "@repo/store";
 
 export const MailNavbar = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [searchText, setSearchText] = useState(searchParams.get("q") || "");
 
   const { fetchCategories, categories } = useCategoryStore();
   const { filterEmails } = useEmailStore();
@@ -23,16 +24,30 @@ export const MailNavbar = () => {
     } else {
       filterEmails("all");
     }
-  }, [searchParams.get("category")]);
+  }, [searchParams, filterEmails]);
 
-  const onCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  useEffect(() => {
+    setSearchText(searchParams.get("q") || "");
+  }, [searchParams]);
+
+  const updateQueryParams = ({
+    category,
+    query,
+  }: {
+    category?: string;
+    query?: string;
+  }) => {
     const threadId = searchParams.get("threadId");
-    const category = e.target.value;
-
+    const nextCategory = category ?? searchParams.get("category") ?? "";
+    const nextQuery = query ?? searchParams.get("q") ?? "";
     const params = new URLSearchParams();
 
-    if (category) {
-      params.set("category", category);
+    if (nextCategory) {
+      params.set("category", nextCategory);
+    }
+
+    if (nextQuery.trim()) {
+      params.set("q", nextQuery.trim());
     }
 
     if (threadId) {
@@ -40,7 +55,22 @@ export const MailNavbar = () => {
     }
 
     const path = window.location.pathname;
-    router.push(`${path}?${params.toString()}`);
+    router.replace(params.toString() ? `${path}?${params.toString()}` : path);
+  };
+
+  const onCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    updateQueryParams({ category: e.target.value });
+  };
+
+  const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = e.target.value;
+    setSearchText(next);
+    updateQueryParams({ query: next });
+  };
+
+  const clearSearch = () => {
+    setSearchText("");
+    updateQueryParams({ query: "" });
   };
   return (
     <div className="flex flex-col gap-2 bg-[#1A1A1A] sticky top-0 z-10">
@@ -63,9 +93,22 @@ export const MailNavbar = () => {
           />
           <input
             type="text"
+            value={searchText}
+            onChange={onSearchChange}
             placeholder="Search emails..."
-            className="w-full pl-10 pr-3 py-1.5 rounded-md bg-[#141414] text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-600"
+            className="w-full pl-10 pr-8 py-1.5 rounded-md bg-[#141414] text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-600"
           />
+          {searchText && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-500 transition hover:bg-[#2a2a2a] hover:text-gray-200 cursor-pointer"
+              aria-label="Clear search"
+              title="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         <div className="relative w-full sm:flex-1 sm:max-w-[22vw]">

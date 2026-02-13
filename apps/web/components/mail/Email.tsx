@@ -38,6 +38,7 @@ export const Email = ({
 
   const handleClick = () => {
     const category = searchParams.get("category");
+    const query = searchParams.get("q");
     const params = new URLSearchParams();
     if (isSmallScreen) {
       setShowMailList(false);
@@ -45,6 +46,9 @@ export const Email = ({
 
     if (category) {
       params.set("category", category);
+    }
+    if (query) {
+      params.set("q", query);
     }
     params.set("threadId", email.threadId);
 
