@@ -42,7 +42,7 @@ export default function Sidebar({ className }: { className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, clearUser } = useUserStore();
-  const { setSidebarOpen } = useUIStore();
+  const { setSidebarOpen, setComposeOpen, setComposeMinimized } = useUIStore();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -173,6 +173,10 @@ export default function Sidebar({ className }: { className?: string }) {
           type="button"
           aria-label="Compose"
           title="Compose"
+          onClick={() => {
+            setComposeOpen(true);
+            setComposeMinimized(false);
+          }}
           className="fixed bottom-5 right-5 z-40 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-900 shadow-lg ring-1 ring-black/10 transition hover:scale-105 hover:bg-slate-100 active:scale-95"
         >
           <Plus className="h-5 w-5" />

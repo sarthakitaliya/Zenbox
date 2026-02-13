@@ -113,3 +113,21 @@ ${content}
   const summary = await generateResponse(prompt);
   return summary?.trim() || "No summary available.";
 };
+
+export const generate_Email_Body = async (promptText: string) => {
+  const prompt = `
+You are an email writing assistant.
+Generate a professional email body based on the user's instruction.
+
+Rules:
+- Return only the email body text (no markdown, no code block, no title).
+- Keep it concise and practical.
+- Include greeting and sign-off when appropriate.
+
+User request:
+${promptText}
+  `;
+
+  const generated = await generateResponse(prompt);
+  return generated?.trim() || "Could not generate email body.";
+};

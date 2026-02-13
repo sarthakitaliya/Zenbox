@@ -7,6 +7,8 @@ export const useUIStore = create<State>((set) => ({
   emailDetailOpen: false,
   showMailList: true, 
   isSmallScreen: false,
+  composeOpen: false,
+  composeMinimized: false,
   error: null,
   message: null,
   setLoading: (v) => set({ loading: v }),
@@ -16,7 +18,9 @@ export const useUIStore = create<State>((set) => ({
   setSidebarOpen: (v) => set({ sidebarOpen: v }),
   setEmailDetailOpen: (v) => set({ emailDetailOpen: v }),
   setShowMailList: (v) => set({ showMailList: v }),
-  setIsSmallScreen: (v) => set((state) => ({ isSmallScreen: v }))
+  setIsSmallScreen: (v) => set((state) => ({ isSmallScreen: v })),
+  setComposeOpen: (v) => set({ composeOpen: v }),
+  setComposeMinimized: (v) => set({ composeMinimized: v }),
 }));
 
 interface State {
@@ -28,6 +32,8 @@ interface State {
   emailDetailOpen: boolean;
   showMailList: boolean;
   isSmallScreen: boolean;
+  composeOpen: boolean;
+  composeMinimized: boolean;
   setLoading: (v: boolean) => void;
   setError: (msg: string | null) => void;
   setMessage: (msg: string | null) => void;
@@ -36,4 +42,6 @@ interface State {
   setEmailDetailOpen: (v: boolean) => void;
   setShowMailList: (v: boolean) => void;
   setIsSmallScreen: (v: boolean) => void;
+  setComposeOpen: (v: boolean) => void;
+  setComposeMinimized: (v: boolean) => void;
 }

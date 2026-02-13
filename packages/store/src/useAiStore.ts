@@ -22,6 +22,14 @@ type SummarizeEmailResult = {
   message?: string;
 };
 
+type GenerateEmailBodyResult = {
+  success: boolean;
+  data?: {
+    body: string;
+  };
+  message?: string;
+};
+
 export const useAiStore = create<State>((set, get) => ({
   summariesByThread: {},
   summaryLoadingByThread: {},
@@ -86,6 +94,16 @@ export const useAiStore = create<State>((set, get) => ({
       }));
     }
   },
+  generateComposeBody: async (prompt: string): Promise<GenerateEmailBodyResult> => {
+    try {
+      const response =
+        await apiAI.generateEmailBody(prompt) as GenerateEmailBodyResult;
+      return response;
+    } catch (error) {
+      console.error("Error generating compose body:", error);
+      return { success: false, message: "Failed to generate email body." };
+    }
+  },
 }));
 
 interface State {
@@ -93,4 +111,5 @@ interface State {
   summaryLoadingByThread: Record<string, boolean>;
   getcategorizeInitialEmails: (limit: number) => Promise<CategorizeInitialEmailsResult>;
   summarizeEmail: (threadId: string, subject: string, content: string) => Promise<SummarizeEmailResult>;
+  generateComposeBody: (prompt: string) => Promise<GenerateEmailBodyResult>;
 }

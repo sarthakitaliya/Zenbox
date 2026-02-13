@@ -74,9 +74,11 @@ interface State {
   filterEmails: (category: string) => void;
   getRecentEmails: (since: number) => Promise<Email[]>;
   archiveThread: (threadId: string) => Promise<any>;
+  unarchiveThread: (threadId: string) => Promise<any>;
   trashThread: (threadId: string) => Promise<any>;
   starThread: (threadId: string) => Promise<any>;
   unstarThread: (threadId: string) => Promise<any>;
+  sendEmail: (payload: { to: string; subject: string; body: string }) => Promise<any>;
 }
 
 export const useEmailStore = create<State>((set, get) => ({
@@ -221,12 +223,53 @@ export const useEmailStore = create<State>((set, get) => ({
           emails: pruneThread(state.emails),
           allEmails: pruneThread(state.allEmails),
           emailsByFolder: nextEmailsByFolder,
+          lastFetchedAtByFolder: {
+            ...state.lastFetchedAtByFolder,
+            inbox: 0,
+            archive: 0,
+          },
         };
       });
       return res;
     } catch (error) {
       console.error("Failed to archive thread", error);
       setError("Failed to archive thread");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  },
+  unarchiveThread: async (threadId: string) => {
+    try {
+      setLoading(true);
+      const res = await apiEmail.unarchiveThread(threadId);
+      console.log("Unarchived thread:", res);
+      set((state) => {
+        const pruneThread = (list: Email[]) =>
+          list.filter((email) => email.threadId !== threadId);
+
+        const nextEmailsByFolder = Object.fromEntries(
+          Object.entries(state.emailsByFolder).map(([folder, list]) => [
+            folder,
+            pruneThread(list),
+          ])
+        ) as Record<string, Email[]>;
+
+        return {
+          emails: pruneThread(state.emails),
+          allEmails: pruneThread(state.allEmails),
+          emailsByFolder: nextEmailsByFolder,
+          lastFetchedAtByFolder: {
+            ...state.lastFetchedAtByFolder,
+            inbox: 0,
+            archive: 0,
+          },
+        };
+      });
+      return res;
+    } catch (error) {
+      console.error("Failed to unarchive thread", error);
+      setError("Failed to unarchive thread");
       throw error;
     } finally {
       setLoading(false);
@@ -298,6 +341,19 @@ export const useEmailStore = create<State>((set, get) => ({
     } catch (error) {
       console.error("Failed to unstar thread", error);
       setError("Failed to unstar thread");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  },
+  sendEmail: async (payload) => {
+    try {
+      setLoading(true);
+      const res = await apiEmail.sendEmail(payload);
+      return res;
+    } catch (error) {
+      console.error("Failed to send email", error);
+      setError("Failed to send email");
       throw error;
     } finally {
       setLoading(false);

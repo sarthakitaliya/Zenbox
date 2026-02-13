@@ -239,4 +239,43 @@ export class gmailClient {
   unstarThread(threadId: string) {
     return this.modifyThreadLabels(threadId, [], ["STARRED"]);
   }
+
+  async sendMail({
+    to,
+    subject,
+    body,
+  }: {
+    to: string;
+    subject: string;
+    body: string;
+  }) {
+    try {
+      const message = [
+        `To: ${to}`,
+        "Content-Type: text/plain; charset=\"UTF-8\"",
+        "MIME-Version: 1.0",
+        `Subject: ${subject}`,
+        "",
+        body,
+      ].join("\r\n");
+
+      const encodedMessage = Buffer.from(message)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+      const response = await this.gmail.users.messages.send({
+        userId: "me",
+        requestBody: {
+          raw: encodedMessage,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error sending mail:", error);
+      throw new Error("Failed to send mail");
+    }
+  }
 }

@@ -89,6 +89,16 @@ const unstarThread = async (threadId: string) => {
   }
 };
 
+const sendEmail = async (payload: { to: string; subject: string; body: string }) => {
+  try {
+    const response = await api.post(`/emails/send`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return handleError(error);
+  }
+};
+
 export const apiEmail = {
   getEmails,
   getFullEmail,
@@ -97,5 +107,6 @@ export const apiEmail = {
   trashThread,
   starThread,
   unstarThread,
-  unarchiveThread
+  unarchiveThread,
+  sendEmail,
 }

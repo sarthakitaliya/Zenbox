@@ -22,7 +22,18 @@ const summarizeEmail = async (subject: string, content: string) => {
   }
 }
 
+const generateEmailBody = async (prompt: string) => {
+  try {
+    const response = await api.post(`/ai/generate-email-body`, { prompt });
+    return response.data;
+  } catch (error) {
+    console.error("Error generating email body:", error);
+    return handleError(error);
+  }
+}
+
 export const apiAI = {
   categorizeInitialEmails,
-  summarizeEmail
+  summarizeEmail,
+  generateEmailBody
 };

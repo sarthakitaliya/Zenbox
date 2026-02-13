@@ -126,3 +126,27 @@ export const unstarThread = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to unstar thread" });
   }
 }
+
+export const sendEmail = async (req: Request, res: Response) => {
+  const { to, subject, body } = req.body as {
+    to?: string;
+    subject?: string;
+    body?: string;
+  };
+
+  if (!to || !subject || !body) {
+    res.status(400).json({
+      message: "to, subject, and body are required",
+    });
+    return;
+  }
+
+  try {
+    const gmail = new gmailClient();
+    await gmail.init(req.user.id);
+    const result = await gmail.sendMail({ to, subject, body });
+    res.status(200).json({ message: "Email sent", data: result });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to send email" });
+  }
+};

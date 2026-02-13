@@ -1,5 +1,5 @@
 import express from "express";
-import { getFullEmail, getEmails, getRecentEmails, archiveThread, trashThread, starThread, unstarThread, unarchiveThread } from "../controllers/emails.controller.js";
+import { getFullEmail, getEmails, getRecentEmails, archiveThread, trashThread, starThread, unstarThread, unarchiveThread, sendEmail } from "../controllers/emails.controller.js";
 
 const router: express.Router = express.Router();
 
@@ -18,5 +18,6 @@ router.post("/trash", trashThread);
 router.post("/star", starThread);
 
 router.post("/unstar", unstarThread);
+router.post("/send", sendEmail);
 
 export default router;

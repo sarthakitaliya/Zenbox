@@ -103,6 +103,7 @@ export const MailDetail = () => {
     getFullEmail,
     setSelectedThread,
     archiveThread,
+    unarchiveThread,
     trashThread,
     starThread,
     unstarThread,
@@ -155,7 +156,10 @@ export const MailDetail = () => {
       qs.set("q", query);
     }
 
-    router.push(qs.toString() ? `/mail/inbox?${qs.toString()}` : "/mail/inbox");
+    const targetFolder = activeFolder || "inbox";
+    router.push(
+      qs.toString() ? `/mail/${targetFolder}?${qs.toString()}` : `/mail/${targetFolder}`
+    );
     setSelectedThread(null);
   };
   const iconData = CATEGORY_ICONS[selectedThread?.categoryIcon ?? ""];
@@ -166,14 +170,25 @@ export const MailDetail = () => {
 
   const handleArchiveThread = async () => {
     if (selectedThread) {
-      const isArchived = selectedThread.messages[0].labelIds?.includes("INBOX");
+      const alreadyArchived = !selectedThread.messages[0].labelIds?.includes("INBOX");
+
+      if (alreadyArchived) {
+        toast.promise(unarchiveThread(selectedThread.threadId), {
+          loading: "Unarchiving thread...",
+          success: () => {
+            handleCloseEmailDetail();
+            return "Thread unarchived successfully!";
+          },
+          error: "Failed to unarchive thread.",
+        });
+        return;
+      }
+
       toast.promise(archiveThread(selectedThread.threadId), {
-        loading: "loading...",
+        loading: "Archiving thread...",
         success: () => {
           handleCloseEmailDetail();
-          return isArchived
-            ? "Already archived"
-            : "Thread archived successfully!";
+          return "Thread archived successfully!";
         },
         error: "Failed to archive thread.",
       });
@@ -261,6 +276,9 @@ export const MailDetail = () => {
   const isSummarizing = currentThreadId
     ? Boolean(summaryLoadingByThread[currentThreadId])
     : false;
+  const isThreadArchived = Boolean(
+    selectedThread && !selectedThread.messages[0].labelIds?.includes("INBOX")
+  );
   const formattedSummary = useMemo(() => formatSummaryText(summary), [summary]);
 
   return (
@@ -298,7 +316,11 @@ export const MailDetail = () => {
                 <div className="cursor-pointer text-gray-400 hover:bg-gray-700 rounded p-2">
                   <Archive
                     size={16}
-                    className="text-gray-400"
+                    className={
+                      isThreadArchived
+                        ? "text-emerald-400 fill-emerald-400"
+                        : "text-gray-400"
+                    }
                     onClick={handleArchiveThread}
                   />
                 </div>

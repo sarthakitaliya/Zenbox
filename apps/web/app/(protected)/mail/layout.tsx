@@ -1,5 +1,6 @@
 "use client";
 import Loading from "@/components/Loading";
+import ComposePopup from "@/components/mail/ComposePopup";
 import Sidebar from "@/components/mail/Sidebar";
 import { useCategoryStore, useUIStore } from "@repo/store";
 import { useRouter } from "next/navigation";
@@ -96,6 +97,7 @@ export default function MailLayout({ children }: { children: ReactNode }) {
       <main className="bg-[#1A1A1A] flex-1 overflow-hidden rounded-l-2xl scrollbar-custom">
         {children}
       </main>
+      <ComposePopup />
     </div>
   );
 }
