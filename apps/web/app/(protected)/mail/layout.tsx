@@ -5,26 +5,49 @@ import { useCategoryStore, useUIStore } from "@repo/store";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
+const JUST_SIGNED_IN_KEY = "zenbox:just-signed-in";
+
 export default function MailLayout({ children }: { children: ReactNode }) {
   const [checkingCategories, setCheckingCategories] = useState(true);
   const router = useRouter();
   const { checkCategories } = useCategoryStore();
-  const { setError, sidebarOpen, setSidebarOpen } = useUIStore();
+  const { sidebarOpen, setSidebarOpen } = useUIStore();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkIfUserHasCategories = async () => {
-      const hasCategories: boolean = await checkCategories();
-      if (!hasCategories) {
-        setError(
-          "You need to set up categories before using the mail feature."
+      const hasCategories = await checkCategories(false);
+      if (!isMounted) return;
+
+      if (hasCategories !== true) {
+        const justSignedIn =
+          typeof window !== "undefined" &&
+          window.sessionStorage.getItem(JUST_SIGNED_IN_KEY) === "1";
+
+        if (typeof window !== "undefined") {
+          window.sessionStorage.removeItem(JUST_SIGNED_IN_KEY);
+        }
+
+        router.replace(
+          justSignedIn
+            ? "/setup-categories"
+            : "/setup-categories?reason=missing-categories"
         );
-        router.push("/setup-categories");
-      } else {
-        setCheckingCategories(false);
+        return;
       }
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem(JUST_SIGNED_IN_KEY);
+      }
+      setCheckingCategories(false);
     };
+
     checkIfUserHasCategories();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {

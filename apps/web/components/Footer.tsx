@@ -8,11 +8,11 @@ import { GlowEffect } from './GlowEffect'
 
 export const Footer = () => {
     return (
-        <footer className="relative overflow-hidden">
-         <GlowEffect />
+        <footer className="relative overflow-hidden bg-gradient-to-t from-gray-900 to-slate-900">
+            <GlowEffect />
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="py-12 lg:py-16">
+                <div className="py-16 lg:py-20">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -20,13 +20,13 @@ export const Footer = () => {
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
                         >
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Product</h3>
-                            <ul className="space-y-3">
+                            <h3 className="text-lg font-semibold text-white mb-6">Product</h3>
+                            <ul className="space-y-4">
                                 {footerLinks.product.map((link) => (
                                     <li key={link.name}>
                                         <Link 
                                             href={link.href}
-                                            className="text-gray-700 hover:text-violet-600 transition-colors"
+                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
                                         >
                                             {link.name}
                                         </Link>
@@ -41,13 +41,13 @@ export const Footer = () => {
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.1 }}
                         >
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Company</h3>
-                            <ul className="space-y-3">
+                            <h3 className="text-lg font-semibold text-white mb-6">Company</h3>
+                            <ul className="space-y-4">
                                 {footerLinks.company.map((link) => (
                                     <li key={link.name}>
                                         <Link 
                                             href={link.href}
-                                            className="text-gray-700 hover:text-violet-600 transition-colors"
+                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
                                         >
                                             {link.name}
                                         </Link>
@@ -62,13 +62,13 @@ export const Footer = () => {
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.2 }}
                         >
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Resources</h3>
-                            <ul className="space-y-3">
+                            <h3 className="text-lg font-semibold text-white mb-6">Resources</h3>
+                            <ul className="space-y-4">
                                 {footerLinks.resources.map((link) => (
                                     <li key={link.name}>
                                         <Link 
                                             href={link.href}
-                                            className="text-gray-700 hover:text-violet-600 transition-colors"
+                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
                                         >
                                             {link.name}
                                         </Link>
@@ -83,13 +83,13 @@ export const Footer = () => {
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.3 }}
                         >
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Legal</h3>
-                            <ul className="space-y-3">
+                            <h3 className="text-lg font-semibold text-white mb-6">Legal</h3>
+                            <ul className="space-y-4">
                                 {footerLinks.legal.map((link) => (
                                     <li key={link.name}>
                                         <Link 
                                             href={link.href}
-                                            className="text-gray-700 hover:text-violet-600 transition-colors"
+                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
                                         >
                                             {link.name}
                                         </Link>
@@ -100,8 +100,8 @@ export const Footer = () => {
                     </div>
                 </div>
 
-                <div className="border-t border-gray-200/30 py-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="border-t border-gray-700/50 py-8">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             whileInView={{ opacity: 1, x: 0 }}
@@ -113,7 +113,7 @@ export const Footer = () => {
                                 <Link
                                     key={link.name}
                                     href={link.href}
-                                    className="text-gray-700 hover:text-violet-600 transition-colors hover:scale-105 duration-300 ease-in-out"
+                                    className="text-gray-400 hover:text-purple-400 transition-colors hover:scale-110 duration-300 ease-in-out"
                                     aria-label={link.name}
                                 >
                                     <link.icon className="w-6 h-6" />
@@ -126,7 +126,7 @@ export const Footer = () => {
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
-                            className="text-gray-700 text-sm"
+                            className="text-gray-400 text-sm"
                         >
                             © {new Date().getFullYear()} Zenbox. All rights reserved.
                         </motion.div>

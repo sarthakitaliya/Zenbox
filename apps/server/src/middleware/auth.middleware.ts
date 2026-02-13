@@ -12,7 +12,10 @@ export const authMiddleware = async (
     const session = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
     });
+    console.log("Session:", session);
     if (!session) {
+      console.log("Authentication failed: No session found");
+      
       throw new AuthenticationError("Authentication failed");
     }
     req.user = session.user as any;

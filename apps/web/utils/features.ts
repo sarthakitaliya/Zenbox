@@ -1,34 +1,43 @@
-import { BsInbox, BsTag, BsFilter, BsRobot, BsClock, BsShield } from 'react-icons/bs'
+import { 
+    BsInbox, 
+    BsTag, 
+    BsSearch, 
+    BsRobot, 
+    BsGear, 
+    BsFileText,
+    BsFilter,
+    BsEye
+} from 'react-icons/bs'
 
 export const features = [
     {
-        icon: BsInbox,
-        title: "Smart Inbox",
-        description: "AI-powered inbox that automatically prioritizes and categorizes your emails."
-    },
-    {
         icon: BsTag,
-        title: "Custom Categories",
-        description: "Create and customize email categories that match your workflow."
+        title: "AI-Based Categorization",
+        description: "Automatically sorts incoming emails into custom user-defined categories."
     },
     {
-        icon: BsFilter,
-        title: "Intelligent Filtering",
-        description: "Advanced filters that learn from your behavior to sort emails effectively."
+        icon: BsInbox,
+        title: "Smart Inbox View",
+        description: "Unified inbox with filters for categories, starred, drafts, sent, spam, and trash."
+    },
+    {
+        icon: BsFileText,
+        title: "AI Summaries",
+        description: "Generates concise summaries of long emails for quick reading."
+    },
+    {
+        icon: BsSearch,
+        title: "Search & Filter",
+        description: "Search by sender, keyword, category with powerful filtering options."
     },
     {
         icon: BsRobot,
-        title: "AI Responses",
-        description: "Smart reply suggestions and automated response handling."
+        title: "AI Reply Suggestions",
+        description: "Context-aware, auto-generated reply drafts for faster responses."
     },
     {
-        icon: BsClock,
-        title: "Schedule Sending",
-        description: "Plan your emails to be sent at the perfect time for maximum impact."
-    },
-    {
-        icon: BsShield,
-        title: "Privacy First",
-        description: "Enterprise-grade security with end-to-end encryption for your emails."
+        icon: BsGear,
+        title: "Category Management",
+        description: "Create, edit, and manage up to four personalized categories with icons and descriptions."
     }
 ]

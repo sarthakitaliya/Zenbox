@@ -5,14 +5,16 @@ import { useUIStore } from "./useUIStore";
 const { setLoading, setError, setMessage } = useUIStore.getState();
 export const useCategoryStore = create<State>((set) => ({
   categories: [],
-  checkCategories: async () => {
+  checkCategories: async (showError = true) => {
     try {
       setLoading(true);
       const hasCategories = await apiCategory.checkCategories();
       return hasCategories;
     } catch (error) {
-      setError("Failed to check categories");
-      return false;
+      if (showError) {
+        setError("Failed to check categories");
+      }
+      return null;
     } finally {
       setLoading(false);
     }
@@ -99,7 +101,7 @@ type category = {
 };
 type State = {
   categories: category[];
-  checkCategories: () => Promise<boolean>;
+  checkCategories: (showError?: boolean) => Promise<boolean | null>;
   fetchCategories: () => Promise<void>;
   createCategory: (categoryData: {
     name: string;

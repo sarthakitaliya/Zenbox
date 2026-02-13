@@ -3,6 +3,12 @@ import { NotFoundError } from "../utils/errors";
 import { gmailClient } from "../lib/gmailClient";
 import { categorizeEmailWithGemini } from "../ai/geminiCategorizer";
 
+type InitialCategorizationResult = {
+  newlyCategorizedCount: number;
+  totalCategorizedCount: number;
+  isFirstCategorization: boolean;
+};
+
 export const categorize_Initial_Emails = async (userId: string, limit: number = 30) => {
   try {
     const categories = await prismaClient.customCategory.findMany({
@@ -21,9 +27,11 @@ export const categorize_Initial_Emails = async (userId: string, limit: number = 
     await gmail.init(userId);
     const threads = await gmail.listThreadsWithFullMessages("in:inbox", limit);
   
-    let categorizedCount = await prismaClient.mail.count({
+    const initialCategorizedCount = await prismaClient.mail.count({
       where: { userId },
     });
+    let categorizedCount = initialCategorizedCount;
+    let newlyCategorizedCount = 0;
   
     for (const thread of threads) {
       if (categorizedCount >= limit) {
@@ -45,25 +53,41 @@ export const categorize_Initial_Emails = async (userId: string, limit: number = 
       });
   
       if (category) {
-        await prismaClient.mail.upsert({
+        const existingMail = await prismaClient.mail.findUnique({
           where: { gmailId: latest.id },
-          update: { categoryId: category.id },
-          create: {
-            userId,
-            gmailId: latest.id,
-            threadId: thread.threadId,
-            subject: latest.subject,
-            from: latest.from,
-            to: latest.to,
-            snippet: latest.snippet || "",
-            categoryId: category.id,
-          },
+          select: { id: true },
         });
-  
-        categorizedCount++;
+
+        if (existingMail) {
+          await prismaClient.mail.update({
+            where: { gmailId: latest.id },
+            data: { categoryId: category.id },
+          });
+        } else {
+          await prismaClient.mail.create({
+            data: {
+              userId,
+              gmailId: latest.id,
+              threadId: thread.threadId,
+              subject: latest.subject,
+              from: latest.from,
+              to: latest.to,
+              snippet: latest.snippet || "",
+              categoryId: category.id,
+            },
+          });
+          categorizedCount++;
+          newlyCategorizedCount++;
+        }
       }
     }
-    return `Categorized ${categorizedCount} emails successfully.`;
+    const result: InitialCategorizationResult = {
+      newlyCategorizedCount,
+      totalCategorizedCount: categorizedCount,
+      isFirstCategorization:
+        initialCategorizedCount === 0 && newlyCategorizedCount > 0,
+    };
+    return result;
   } catch (error) {
     console.error("Error categorizing initial emails:", error);
     throw new Error("Failed to categorize initial emails");

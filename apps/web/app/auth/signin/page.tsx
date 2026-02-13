@@ -10,12 +10,19 @@ export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const {data: session} = authClient.useSession();
   const router = useRouter();
+  const JUST_SIGNED_IN_KEY = "zenbox:just-signed-in";
+
   if (session) {
     router.push("/mail/inbox");
   }
+
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(JUST_SIGNED_IN_KEY, "1");
+      }
+
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/setup-categories",
@@ -27,6 +34,9 @@ export default function SignIn() {
         ],
       });
     } catch (error) {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem(JUST_SIGNED_IN_KEY);
+      }
       console.error("Sign in error:", error);
     } finally {
       setIsLoading(false);

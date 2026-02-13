@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useCategoryStore, useUIStore } from "@repo/store";
@@ -15,6 +15,8 @@ interface Category {
 
 export default function SetupCategories() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const hasShownAccessToast = useRef(false);
   const [categories, setCategories] = useState<Category[]>([
     { name: "", description: "" },
     { name: "", description: "" },
@@ -25,18 +27,32 @@ export default function SetupCategories() {
   const {setError} = useUIStore();
 
   useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (reason !== "missing-categories" || hasShownAccessToast.current) return;
+
+    hasShownAccessToast.current = true;
+    setError("You need to set up categories before using the mail feature.");
+    router.replace("/setup-categories");
+  }, [router, searchParams, setError]);
+
+  useEffect(() => {
+    let isMounted = true;
+
     const checkIfUserHasCategories = async () => {
-      const hasCategories: boolean = await checkCategories();
-      if (hasCategories) {
-        setError(
-          "You already have categories set up. Redirecting to inbox..."
-        );
+      const hasCategories = await checkCategories(false);
+      if (!isMounted) return;
+
+      if (hasCategories === true) {
         router.push("/mail/inbox");
       } else {
         setCheckingCategories(false);
       }
     };
+
     checkIfUserHasCategories();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (checkingCategorys) {

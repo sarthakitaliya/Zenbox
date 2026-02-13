@@ -1,20 +1,34 @@
 import { apiAI } from "@repo/api-client/apis";
 import { create } from "zustand";
 import { useUIStore } from "./useUIStore";
-import { useEmailStore } from "./useEmailStore";
 
-const { setError, setMessage, setLoadingList } = useUIStore.getState();
+const { setMessage, setLoadingList } = useUIStore.getState();
+
+type CategorizeInitialEmailsResult = {
+  success: boolean;
+  data?: {
+    newlyCategorizedCount: number;
+    totalCategorizedCount: number;
+    isFirstCategorization: boolean;
+  };
+  message?: string;
+};
+
 export const useAiStore = create<State>((set) => ({
   getcategorizeInitialEmails: async (limit: number) => {
     try {
       setLoadingList(true);
-      const response = await apiAI.categorizeInitialEmails(limit);
-      setMessage("Initial emails categorized successfully");
+      const response =
+        await apiAI.categorizeInitialEmails(limit) as CategorizeInitialEmailsResult;
+
+      if (response?.success && response.data?.isFirstCategorization) {
+        setMessage("Initial emails categorized successfully");
+      }
+
       return response;
     } catch (error) {
       console.error("Error categorizing initial emails:", error);
-      setError("Failed to categorize initial emails");
-      throw error;
+      return { success: false, message: "Initial categorization failed." };
     } finally {
       setLoadingList(false);
     }
@@ -22,5 +36,5 @@ export const useAiStore = create<State>((set) => ({
 }));
 
 interface State {
-  getcategorizeInitialEmails: (limit: number) => Promise<any>;
+  getcategorizeInitialEmails: (limit: number) => Promise<CategorizeInitialEmailsResult>;
 }
