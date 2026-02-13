@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { useUIStore } from "./useUIStore";
 
 const { setLoading, setError, setLoadingList } = useUIStore.getState();
+const EMAIL_CACHE_TTL_MS = 5 * 60 * 1000;
 
 export interface Email {
   threadId: string;
@@ -49,16 +50,26 @@ interface selectedEmail {
   categoryIcon?: string;
   messages: threadEmail[];
 }
+
+type GetEmailsOptions = {
+  forceRefresh?: boolean;
+};
+
 interface State {
   emails: Email[];
   allEmails: Email[];
+  emailsByFolder: Record<string, Email[]>;
+  lastFetchedAtByFolder: Record<string, number>;
   selectedThread: selectedEmail | null;
-  setEmails: (emails: Email[]) => void;
+  setEmails: (
+    updater: Email[] | ((previousEmails: Email[]) => Email[]),
+    folder?: string
+  ) => void;
   clearEmails: () => void;
   selectedEmail: { threadId: string; message: Email[] } | null;
   setSelectedThread: (email: selectedEmail | null) => void;
   clearSelectedEmail: () => void;
-  getEmails: (filter: string) => Promise<Email[]>;
+  getEmails: (filter: string, options?: GetEmailsOptions) => Promise<Email[]>;
   getFullEmail: (threadId: string) => Promise<Email>;
   filterEmails: (category: string) => void;
   getRecentEmails: (since: number) => Promise<Email[]>;
@@ -68,13 +79,31 @@ interface State {
   unstarThread: (threadId: string) => Promise<any>;
 }
 
-export const useEmailStore = create<State>((set) => ({
+export const useEmailStore = create<State>((set, get) => ({
   emails: [],
   allEmails: [],
+  emailsByFolder: {},
+  lastFetchedAtByFolder: {},
   selectedThread: null,
-  setEmails: (emails) => {
-    console.log("Setting emails:", emails);
-    set({ emails, allEmails: emails });
+  setEmails: (updater, folder = "inbox") => {
+    set((state) => {
+      const nextEmails =
+        typeof updater === "function"
+          ? updater(state.emails)
+          : updater;
+      return {
+        emails: nextEmails,
+        allEmails: nextEmails,
+        emailsByFolder: {
+          ...state.emailsByFolder,
+          [folder]: nextEmails,
+        },
+        lastFetchedAtByFolder: {
+          ...state.lastFetchedAtByFolder,
+          [folder]: Date.now(),
+        },
+      };
+    });
   },
   clearEmails: () => {
     console.log("Clearing emails");
@@ -91,12 +120,36 @@ export const useEmailStore = create<State>((set) => ({
     console.log("Clearing selected email");
     set({ selectedEmail: null });
   },
-  getEmails: async (filter) => {
+  getEmails: async (filter, options = {}) => {
+    const folder = filter || "inbox";
+    const { forceRefresh = false } = options;
+
+    const state = get();
+    const cachedEmails = state.emailsByFolder[folder];
+    const lastFetchedAt = state.lastFetchedAtByFolder[folder] || 0;
+    const isCacheFresh = Date.now() - lastFetchedAt < EMAIL_CACHE_TTL_MS;
+
+    if (!forceRefresh && cachedEmails && isCacheFresh) {
+      set({ emails: cachedEmails, allEmails: cachedEmails });
+      return cachedEmails;
+    }
+
     try {
       setLoadingList(true);
-      const res = await apiEmail.getEmails(filter);
+      const res = await apiEmail.getEmails(folder);
       console.log("Fetched emails:", res);
-      set({ emails: res, allEmails: res });
+      set((currentState) => ({
+        emails: res,
+        allEmails: res,
+        emailsByFolder: {
+          ...currentState.emailsByFolder,
+          [folder]: res,
+        },
+        lastFetchedAtByFolder: {
+          ...currentState.lastFetchedAtByFolder,
+          [folder]: Date.now(),
+        },
+      }));
       return res;
     } catch (error) {
       console.error("Failed to fetch emails", error);
@@ -125,7 +178,7 @@ export const useEmailStore = create<State>((set) => ({
     }
   },
   filterEmails: (category) => {
-    const state = useEmailStore.getState();
+    const state = get();
     if (category === "all" || !category) {
       set({ emails: state.allEmails });
       return;
@@ -153,12 +206,23 @@ export const useEmailStore = create<State>((set) => ({
       setLoading(true);
       const res = await apiEmail.archiveThread(threadId);
       console.log("Archived thread:", res);
-      set((state) => ({
-        emails: state.emails.filter((email) => email.threadId !== threadId),
-        allEmails: state.allEmails.filter(
-          (email) => email.threadId !== threadId
-        ),
-      }));
+      set((state) => {
+        const pruneThread = (list: Email[]) =>
+          list.filter((email) => email.threadId !== threadId);
+
+        const nextEmailsByFolder = Object.fromEntries(
+          Object.entries(state.emailsByFolder).map(([folder, list]) => [
+            folder,
+            pruneThread(list),
+          ])
+        ) as Record<string, Email[]>;
+
+        return {
+          emails: pruneThread(state.emails),
+          allEmails: pruneThread(state.allEmails),
+          emailsByFolder: nextEmailsByFolder,
+        };
+      });
       return res;
     } catch (error) {
       console.error("Failed to archive thread", error);
@@ -173,12 +237,23 @@ export const useEmailStore = create<State>((set) => ({
       setLoading(true);
       const res = await apiEmail.trashThread(threadId);
       console.log("Trashed thread:", res);
-      set((state) => ({
-        emails: state.emails.filter((email) => email.threadId !== threadId),
-        allEmails: state.allEmails.filter(
-          (email) => email.threadId !== threadId
-        ),
-      }));
+      set((state) => {
+        const pruneThread = (list: Email[]) =>
+          list.filter((email) => email.threadId !== threadId);
+
+        const nextEmailsByFolder = Object.fromEntries(
+          Object.entries(state.emailsByFolder).map(([folder, list]) => [
+            folder,
+            pruneThread(list),
+          ])
+        ) as Record<string, Email[]>;
+
+        return {
+          emails: pruneThread(state.emails),
+          allEmails: pruneThread(state.allEmails),
+          emailsByFolder: nextEmailsByFolder,
+        };
+      });
       return res;
     } catch (error) {
       console.error("Failed to trash thread", error);
@@ -193,6 +268,12 @@ export const useEmailStore = create<State>((set) => ({
       setLoading(true);
       const res = await apiEmail.starThread(threadId);
       console.log("Starred thread:", res);
+      set((state) => ({
+        lastFetchedAtByFolder: {
+          ...state.lastFetchedAtByFolder,
+          starred: 0,
+        },
+      }));
       return res;
     } catch (error) {
       console.error("Failed to star thread", error);
@@ -207,6 +288,12 @@ export const useEmailStore = create<State>((set) => ({
       setLoading(true);
       const res = await apiEmail.unstarThread(threadId);
       console.log("Unstarred thread:", res);
+      set((state) => ({
+        lastFetchedAtByFolder: {
+          ...state.lastFetchedAtByFolder,
+          starred: 0,
+        },
+      }));
       return res;
     } catch (error) {
       console.error("Failed to unstar thread", error);

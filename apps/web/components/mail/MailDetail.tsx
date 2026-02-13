@@ -1,6 +1,6 @@
 import { useEmailStore, useUIStore } from "@repo/store";
 import { Archive, Reply, Send, Star, Trash2, X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NoEmailSelected } from "./NoEmailSelected";
@@ -16,10 +16,13 @@ export const MailDetail = () => {
     trashThread,
     starThread,
     unstarThread,
+    getEmails,
   } = useEmailStore();
   const { isSmallScreen, setShowMailList } = useUIStore();
   console.log(selectedThread, "selectedThread in MailDetail");
   const searchParams = useSearchParams();
+  const params = useParams();
+  const activeFolder = Array.isArray(params.folder) ? params.folder[0] : params.folder;
   const mailId = searchParams.get("threadId");
   const router = useRouter();
 
@@ -111,6 +114,11 @@ export const MailDetail = () => {
                   : msg
               ),
             });
+
+            if (isStarred && activeFolder === "starred") {
+              getEmails("starred", { forceRefresh: true });
+            }
+
             return isStarred
               ? "Thread unstarred successfully!"
               : "Thread starred successfully!";

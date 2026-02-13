@@ -1,30 +1,41 @@
 import { useCategoryStore, useUIStore } from "@repo/store";
 import { X } from "lucide-react";
-import { useState } from "react";
-interface CreateCategoryModalProps {
+import { useEffect, useState } from "react";
+
+interface EditCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  categoryId: string;
+  initialName: string;
+  initialDescription: string;
 }
 
-export const CreateCategoryModal = ({
+export const EditCategoryModal = ({
   isOpen,
   onClose,
-}: CreateCategoryModalProps) => {
-  const { createCategory } = useCategoryStore();
-  const { loading, setError } = useUIStore();
+  categoryId,
+  initialName,
+  initialDescription,
+}: EditCategoryModalProps) => {
+  const { updateCategory } = useCategoryStore();
+  const { loading } = useUIStore();
 
-  const [name, setName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+  const [name, setName] = useState<string>(initialName);
+  const [description, setDescription] = useState<string>(initialDescription);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setName(initialName);
+    setDescription(initialDescription);
+  }, [isOpen, initialName, initialDescription]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    createCategory({ name, description }).then(() => {
-        if(!loading){
-          onClose();
-          setName("");
-          setDescription("");
-        }
+    await updateCategory(categoryId, {
+      name: name.trim(),
+      description: description.trim(),
     });
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -37,28 +48,27 @@ export const CreateCategoryModal = ({
       }}
     >
       <div className="w-full max-w-md rounded-xl border border-[#363636] bg-[#171717] p-6 shadow-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold text-gray-100">
-            Create New Category
-          </h3>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-gray-100">Edit Category</h3>
           <button
             onClick={onClose}
             className="cursor-pointer rounded-md p-1 text-gray-500 transition hover:bg-[#242424] hover:text-gray-300"
           >
-            <X className="w-5 h-5" />
+            <X className="h-5 w-5" />
           </button>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
-              htmlFor="name"
+              htmlFor="edit-name"
               className="mb-1 block text-sm font-medium text-gray-300"
             >
               Category Name
             </label>
             <input
+              id="edit-name"
               type="text"
-              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-md border border-[#353535] bg-[#111111] px-3 py-2 text-gray-100 placeholder-gray-500 outline-none transition focus:border-[#525252] focus:ring-1 focus:ring-[#525252]"
@@ -66,22 +76,25 @@ export const CreateCategoryModal = ({
               required
             />
           </div>
+
           <div>
             <label
-              htmlFor="description"
+              htmlFor="edit-description"
               className="mb-1 block text-sm font-medium text-gray-300"
             >
               Description
             </label>
             <textarea
-              id="description"
+              id="edit-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full rounded-md border border-[#353535] bg-[#111111] px-3 py-2 text-gray-100 placeholder-gray-500 outline-none transition focus:border-[#525252] focus:ring-1 focus:ring-[#525252]"
               placeholder="Enter category description"
               rows={3}
+              required
             />
           </div>
+
           <div className="flex justify-end space-x-3">
             <button
               type="button"
@@ -94,9 +107,8 @@ export const CreateCategoryModal = ({
               type="submit"
               disabled={loading || !name.trim() || !description.trim()}
               className="rounded-md bg-[#2b2b2b] px-4 py-2 text-white transition hover:bg-[#3a3a3a] disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={handleSubmit}
             >
-              {loading ? "Creating..." : "Create Category"}
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

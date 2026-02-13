@@ -5,31 +5,33 @@ import { useEmailStore, useAiStore, useUIStore } from "@repo/store";
 import { EmailSkeleton } from "./EmailListSkeleton";
 import { useParams } from "next/navigation";
 
+const INITIAL_CATEGORIZATION_KEY = "zenbox:initial-categorization-attempted";
+
 export const MailList = () => {
-  const { getEmails, setEmails, emails } = useEmailStore();
+  const { getEmails, emails } = useEmailStore();
   const { getcategorizeInitialEmails } = useAiStore();
   const { loadingList } = useUIStore();
   const params = useParams();
   const folder = Array.isArray(params.folder) ? params.folder[0] : params.folder;
+  const activeFolder = folder || "inbox";
 
   useEffect(() => {
-    console.log("Fetching emails for folder:", folder);
+    console.log("Fetching emails for folder:", activeFolder);
 
     const fetchEmails = async () => {
       try {
-        if (emails.length > 0) {
-          setEmails([]);
-        }
-
-        const freshEmails: any[] = await getEmails(folder as string);
-        setEmails(freshEmails);
+        await getEmails(activeFolder);
 
         // Initial categorization is best-effort and should never block inbox rendering.
-        if (folder === "inbox") {
+        if (
+          activeFolder === "inbox" &&
+          typeof window !== "undefined" &&
+          window.sessionStorage.getItem(INITIAL_CATEGORIZATION_KEY) !== "1"
+        ) {
+          window.sessionStorage.setItem(INITIAL_CATEGORIZATION_KEY, "1");
           const res = await getcategorizeInitialEmails(10);
-          if (res.success) {
-            const categorizedEmails: any[] = await getEmails(folder as string);
-            setEmails(categorizedEmails);
+          if (res.success && (res.data?.newlyCategorizedCount || 0) > 0) {
+            await getEmails(activeFolder, { forceRefresh: true });
           }
         }
       } catch (error) {
@@ -37,7 +39,7 @@ export const MailList = () => {
       }
     };
     fetchEmails();
-  }, [folder]);
+  }, [activeFolder, getEmails, getcategorizeInitialEmails]);
 
   return (
     <div className="flex flex-col h-full">
@@ -66,7 +68,7 @@ export const MailList = () => {
                         }
                       : undefined,
                   }}
-                  folder={folder} 
+                  folder={activeFolder}
                 />
               ))
             ) : (

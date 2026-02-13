@@ -1,138 +1,84 @@
 "use client"
 
-import { footerLinks } from '@/utils/footerLinks'
-import { motion } from 'framer-motion'
 import Link from 'next/link'
+
+import { footerLinks } from '@/utils/footerLinks'
 import { socialLinks } from '@/utils/socailLinks'
-import { GlowEffect } from './GlowEffect'
 
 export const Footer = () => {
-    return (
-        <footer className="relative overflow-hidden bg-gradient-to-t from-gray-900 to-slate-900">
-            <GlowEffect />
+  return (
+    <footer className="bg-white">
+      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-8 border-b border-slate-200 pb-10 md:grid-cols-4">
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Product</h3>
+            <ul className="space-y-3">
+              {footerLinks.product.map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href} className="text-sm text-slate-600 transition-colors hover:text-slate-900">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="py-16 lg:py-20">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <h3 className="text-lg font-semibold text-white mb-6">Product</h3>
-                            <ul className="space-y-4">
-                                {footerLinks.product.map((link) => (
-                                    <li key={link.name}>
-                                        <Link 
-                                            href={link.href}
-                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
-                                        >
-                                            {link.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Company</h3>
+            <ul className="space-y-3">
+              {footerLinks.company.map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href} className="text-sm text-slate-600 transition-colors hover:text-slate-900">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                        >
-                            <h3 className="text-lg font-semibold text-white mb-6">Company</h3>
-                            <ul className="space-y-4">
-                                {footerLinks.company.map((link) => (
-                                    <li key={link.name}>
-                                        <Link 
-                                            href={link.href}
-                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
-                                        >
-                                            {link.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Resources</h3>
+            <ul className="space-y-3">
+              {footerLinks.resources.map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href} className="text-sm text-slate-600 transition-colors hover:text-slate-900">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                        >
-                            <h3 className="text-lg font-semibold text-white mb-6">Resources</h3>
-                            <ul className="space-y-4">
-                                {footerLinks.resources.map((link) => (
-                                    <li key={link.name}>
-                                        <Link 
-                                            href={link.href}
-                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
-                                        >
-                                            {link.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
+          <div>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Legal</h3>
+            <ul className="space-y-3">
+              {footerLinks.legal.map((link) => (
+                <li key={link.name}>
+                  <Link href={link.href} className="text-sm text-slate-600 transition-colors hover:text-slate-900">
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                        >
-                            <h3 className="text-lg font-semibold text-white mb-6">Legal</h3>
-                            <ul className="space-y-4">
-                                {footerLinks.legal.map((link) => (
-                                    <li key={link.name}>
-                                        <Link 
-                                            href={link.href}
-                                            className="text-gray-400 hover:text-purple-400 transition-colors duration-300"
-                                        >
-                                            {link.name}
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
-                    </div>
-                </div>
-
-                <div className="border-t border-gray-700/50 py-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5 }}
-                            className="flex items-center gap-6"
-                        >
-                            {socialLinks.map((link) => (
-                                <Link
-                                    key={link.name}
-                                    href={link.href}
-                                    className="text-gray-400 hover:text-purple-400 transition-colors hover:scale-110 duration-300 ease-in-out"
-                                    aria-label={link.name}
-                                >
-                                    <link.icon className="w-6 h-6" />
-                                </Link>
-                            ))}
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5 }}
-                            className="text-gray-400 text-sm"
-                        >
-                            © {new Date().getFullYear()} Zenbox. All rights reserved.
-                        </motion.div>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    )
-} 
+        <div className="flex flex-col items-start justify-between gap-4 pt-6 md:flex-row md:items-center">
+          <div className="flex items-center gap-4">
+            {socialLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                aria-label={link.name}
+                className="text-slate-500 transition-colors hover:text-slate-900"
+              >
+                <link.icon className="h-5 w-5" />
+              </Link>
+            ))}
+          </div>
+          <p className="text-sm text-slate-500">© {new Date().getFullYear()} Zenbox. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  )
+}

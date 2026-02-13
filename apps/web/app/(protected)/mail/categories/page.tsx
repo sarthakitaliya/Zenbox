@@ -1,101 +1,132 @@
 "use client";
+
 import { CreateCategoryModal } from "@/components/mail/CreateCategoryModal";
+import { EditCategoryModal } from "@/components/mail/EditCategoryModal";
 import { useCategoryStore, useUIStore } from "@repo/store";
-import { useEffect, useState } from "react";
-import { Folder, Menu, Pencil } from "lucide-react";
+import { Folder, Menu, Pencil, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
+const MAX_CATEGORIES = 4;
 
 export default function CategoriesPage() {
-  const { fetchCategories, categories, createCategory } = useCategoryStore();
+  const { fetchCategories, categories } = useCategoryStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<{
+    id: string;
+    name: string;
+    description: string;
+  } | null>(null);
   const { setSidebarOpen, sidebarOpen } = useUIStore();
 
   useEffect(() => {
-    const loadCategories = async () => {
-      await fetchCategories();
-    };
-    loadCategories();
+    fetchCategories();
   }, [fetchCategories]);
 
-  const handleCreateCategory = async (name: string, description: string) => {
-    await createCategory({ name, description });
-  };
-
-  if (!categories || categories.length === 0) {
-    return (
-      <div className="p-4">
-        <h2 className="text-2xl font-semibold mb-4">Categories</h2>
-        <p className="text-gray-700">No categories found.</p>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          Create Category
-        </button>
-        <CreateCategoryModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-        />
-      </div>
-    );
-  }
+  const categoryCount = categories.length;
+  const canCreateMore = categoryCount < MAX_CATEGORIES;
+  const categoryLimitText = useMemo(
+    () => `${categoryCount}/${MAX_CATEGORIES} categories used`,
+    [categoryCount]
+  );
 
   return (
-    <div className="p-5 m-5">
-      <div className="cursor-pointer mb-">
-        <Menu
-          size={17}
-          className="text-gray-400"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        />
-      </div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-semibold">Categories</h2>
-          <p className="text-gray-500 mb-4">
-            Here are your custom categories. You can use these to organize your
-            emails.
-          </p>
-        </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-        >
-          Create Category
-        </button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            className="border border-gray-300 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition flex flex-col gap-2"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                <Folder className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                <h3 className="text-lg font-semibold capitalize text-gray-800 dark:text-gray-100">
-                  {category.name}
-                </h3>
-              </div>
-              <button
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition cursor-pointer"
-                title="Edit category"
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-              {category.description}
-            </p>
-            <span className="mt-2 inline-block bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full w-max">
-              {category._count?.emails ?? 0} email
-              {category._count?.emails === 1 ? "" : "s"}
-            </span>
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 bg-[#1A1A1A]">
+        <div className="flex items-center justify-between border-b border-[#3f3f3f7a] px-4 py-3 sm:px-5 sm:py-4">
+          <div className="cursor-pointer">
+            <Menu
+              size={17}
+              className="text-gray-400 transition hover:text-white"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            />
           </div>
-        ))}
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            disabled={!canCreateMore}
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-[#3a3a3a] bg-[#242424] px-3 py-1.5 text-sm font-medium text-gray-200 transition hover:bg-[#2d2d2d] hover:text-white disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            title={
+              canCreateMore
+                ? "Create a new category"
+                : `Maximum of ${MAX_CATEGORIES} categories reached`
+            }
+          >
+            <Plus className="h-4 w-4" />
+            Create Category
+          </button>
+        </div>
       </div>
+
+      <div className="flex-1 overflow-y-auto bg-[#1A1A1A] p-4 sm:p-5 scrollbar-custom">
+        <div className="mb-5 rounded-xl border border-[#2c2c2c] bg-[#171717] p-4 sm:p-5">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold text-gray-100">Categories</h2>
+            <p className="mt-1 text-sm text-gray-400">
+              Manage your custom categories for email organization.
+            </p>
+            <p className="mt-2 text-xs text-gray-500">{categoryLimitText}</p>
+          </div>
+
+          {categoryCount === 0 ? (
+            <div className="rounded-lg border border-[#2f2f2f] bg-[#141414] p-6">
+              <p className="text-sm text-gray-300">No categories found.</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Add at least one category to start organizing your inbox.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="rounded-lg border border-[#303030] bg-[#141414] p-4 transition hover:border-[#4a4a4a]"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Folder className="h-5 w-5 text-gray-400 shrink-0" />
+                      <h3 className="truncate text-lg font-semibold capitalize text-gray-100">
+                        {category.name}
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingCategory({
+                          id: category.id,
+                          name: category.name,
+                          description: category.description ?? "",
+                        })
+                      }
+                      className="cursor-pointer text-gray-500 transition hover:text-gray-300"
+                      title="Edit category"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <p className="mt-2 text-sm text-gray-400">{category.description}</p>
+
+                  <span className="mt-3 inline-block rounded-full bg-[#242424] px-2.5 py-1 text-xs font-medium text-gray-300">
+                    {category._count?.emails ?? 0} email
+                    {(category._count?.emails ?? 0) === 1 ? "" : "s"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <CreateCategoryModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+      <EditCategoryModal
+        isOpen={Boolean(editingCategory)}
+        onClose={() => setEditingCategory(null)}
+        categoryId={editingCategory?.id ?? ""}
+        initialName={editingCategory?.name ?? ""}
+        initialDescription={editingCategory?.description ?? ""}
       />
     </div>
   );

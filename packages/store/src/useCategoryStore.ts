@@ -19,7 +19,12 @@ export const useCategoryStore = create<State>((set) => ({
       setLoading(false);
     }
   },
-  fetchCategories: async () => {
+  fetchCategories: async (forceRefresh = false) => {
+    const state = useCategoryStore.getState();
+    if (!forceRefresh && state.categories.length > 0) {
+      return;
+    }
+
     try {
       setLoading(true);
       const categories = await apiCategory.getCategories();
@@ -102,7 +107,7 @@ type category = {
 type State = {
   categories: category[];
   checkCategories: (showError?: boolean) => Promise<boolean | null>;
-  fetchCategories: () => Promise<void>;
+  fetchCategories: (forceRefresh?: boolean) => Promise<void>;
   createCategory: (categoryData: {
     name: string;
     description: string;
