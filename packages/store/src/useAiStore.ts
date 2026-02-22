@@ -25,6 +25,7 @@ type SummarizeEmailResult = {
 type GenerateEmailBodyResult = {
   success: boolean;
   data?: {
+    subject?: string;
     body: string;
   };
   message?: string;

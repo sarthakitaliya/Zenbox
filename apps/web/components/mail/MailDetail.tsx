@@ -1,4 +1,4 @@
-import { useEmailStore, useUIStore } from "@repo/store";
+import { useEmailStore, useUIStore, useUserStore } from "@repo/store";
 import { Archive, Reply, Send, Sparkles, Star, Trash2, X } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -28,6 +28,14 @@ const formatSummaryText = (text: string) => {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 };
+
+const stripHtml = (html: string) =>
+  html
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 const parseRgb = (value: string): [number, number, number] | null => {
   const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
@@ -102,6 +110,7 @@ export const MailDetail = () => {
     selectedThread,
     getFullEmail,
     setSelectedThread,
+    emailsByFolder,
     archiveThread,
     unarchiveThread,
     trashThread,
@@ -109,8 +118,15 @@ export const MailDetail = () => {
     unstarThread,
     getEmails,
   } = useEmailStore();
+  const { user } = useUserStore();
   const { summarizeEmail, summariesByThread, summaryLoadingByThread } = useAiStore();
-  const { isSmallScreen, setShowMailList } = useUIStore();
+  const {
+    isSmallScreen,
+    setShowMailList,
+    setComposeOpen,
+    setComposeMinimized,
+    setComposeDraft,
+  } = useUIStore();
   console.log(selectedThread, "selectedThread in MailDetail");
   const searchParams = useSearchParams();
   const params = useParams();
@@ -137,8 +153,19 @@ export const MailDetail = () => {
   }, [selectedThread]);
 
   useEffect(() => {
-    const roots = document.querySelectorAll<HTMLElement>(".email-html-body");
-    roots.forEach((root) => fixEmailContrast(root));
+    const run = () => {
+      const roots = document.querySelectorAll<HTMLElement>(".email-html-body");
+      roots.forEach((root) => fixEmailContrast(root));
+    };
+
+    run();
+    const rafId = window.requestAnimationFrame(run);
+    const timeoutId = window.setTimeout(run, 120);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+    };
   }, [selectedThread?.threadId, openMessageIndex]);
 
   const handleCloseEmailDetail = () => {
@@ -271,6 +298,50 @@ export const MailDetail = () => {
     }
   };
 
+  const handleReplyClick = () => {
+    if (!selectedThread) return;
+
+    const currentUserEmail = user?.email?.toLowerCase().trim() || "";
+    const nonSelfMessages = selectedThread.messages.filter((msg) => {
+      const sender = msg.senderEmail?.toLowerCase().trim();
+      return sender && sender !== currentUserEmail;
+    });
+
+    const latestIncomingMessage =
+      nonSelfMessages[nonSelfMessages.length - 1] ||
+      selectedThread.messages[selectedThread.messages.length - 1] ||
+      selectedThread.messages[0];
+
+    const to =
+      latestIncomingMessage?.senderEmail ||
+      latestIncomingMessage?.from ||
+      "";
+    const subject = selectedThread.subject?.toLowerCase().startsWith("re:")
+      ? selectedThread.subject
+      : `Re: ${selectedThread.subject}`;
+
+    const originalBodyRaw = latestIncomingMessage?.body?.content || "";
+    const originalBody =
+      stripHtml(originalBodyRaw).slice(0, 4000) ||
+      latestIncomingMessage?.snippet ||
+      "";
+
+    setComposeDraft({
+      to,
+      subject,
+      body: "",
+      threadId: selectedThread.threadId,
+      replyContext: {
+        originalSubject: selectedThread.subject || "No subject",
+        originalBody,
+        recipientName: latestIncomingMessage?.senderName || "",
+        recipientEmail: latestIncomingMessage?.senderEmail || "",
+      },
+    });
+    setComposeOpen(true);
+    setComposeMinimized(false);
+  };
+
   const currentThreadId = selectedThread?.threadId || "";
   const summary = currentThreadId ? summariesByThread[currentThreadId] : "";
   const isSummarizing = currentThreadId
@@ -280,6 +351,17 @@ export const MailDetail = () => {
     selectedThread && !selectedThread.messages[0].labelIds?.includes("INBOX")
   );
   const formattedSummary = useMemo(() => formatSummaryText(summary), [summary]);
+  const categoryTooltipLabel = useMemo(() => {
+    if (selectedThread?.categoryName) return selectedThread.categoryName;
+    if (!selectedThread?.threadId) return "Category";
+
+    for (const list of Object.values(emailsByFolder)) {
+      const found = list.find((email) => email.threadId === selectedThread.threadId);
+      if (found?.categoryName) return found.categoryName;
+    }
+
+    return "Category";
+  }, [selectedThread?.categoryName, selectedThread?.threadId, emailsByFolder]);
 
   return (
     <div className="flex flex-col h-full">
@@ -294,10 +376,14 @@ export const MailDetail = () => {
                 <X size={18} />
               </div>
               <div className="flex items-center space-x-2">
-                <div className="flex bg-[#313131] p-1 rounded-lg items-center gap-1.5 px-2 cursor-pointer hover:bg-gray-700">
+                <button
+                  type="button"
+                  onClick={handleReplyClick}
+                  className="flex bg-[#313131] p-1 rounded-lg items-center gap-1.5 px-2 cursor-pointer hover:bg-gray-700"
+                >
                   <Reply size={16} className="text-gray-400" />
                   <p className="text-gray-300 text-sm">Reply</p>
-                </div>
+                </button>
                 <div className="cursor-pointer text-gray-400 hover:bg-gray-700 rounded p-2">
                   {selectedThread?.messages[0].labelIds?.includes("STARRED") ? (
                     <Star
@@ -361,17 +447,23 @@ export const MailDetail = () => {
                     type="button"
                     onClick={handleGenerateSummary}
                     disabled={isSummarizing}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[#3f3f3f7a] bg-[#242424] px-2.5 py-1 text-xs font-medium text-gray-200 transition hover:bg-[#2f2f2f] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[#3f3f3f7a] bg-[#242424] px-2.5 py-1 text-xs font-medium text-gray-200 transition hover:bg-[#2f2f2f] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     {isSummarizing ? "Generating..." : "Generate Summary"}
                   </button>
                 </div>
                 {iconData && (
-                  <span
-                    className={`w-5 h-5 rounded-md flex items-center justify-center ${iconData.bg}`}
-                  >
-                    <iconData.icon className="w-3 h-3 text-white" />
+                  <span className="group relative inline-flex">
+                    <span
+                      className={`w-5 h-5 rounded-md flex items-center justify-center ${iconData.bg}`}
+                      title={categoryTooltipLabel}
+                    >
+                      <iconData.icon className="w-3 h-3 text-white" />
+                    </span>
+                    <span className="pointer-events-none absolute -top-8 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded bg-[#2a2a2a] px-2 py-1 text-[11px] font-medium text-gray-100 opacity-0 shadow transition group-hover:opacity-100">
+                      {categoryTooltipLabel}
+                    </span>
                   </span>
                 )}
               </div>
@@ -410,6 +502,11 @@ export const MailDetail = () => {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
                         className="email-html-body mt-3 overflow-x-auto px-2 text-sm leading-relaxed text-gray-200"
+                        ref={(node) => {
+                          if (node) {
+                            fixEmailContrast(node);
+                          }
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: email.body?.content ?? "",
                         }}

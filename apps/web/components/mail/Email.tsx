@@ -31,10 +31,11 @@ export const Email = ({
   };
   folder: ParamValue;
 }) => {
-  const { selectedEmail, getFullEmail } = useEmailStore();
+  const { selectedThread } = useEmailStore();
   const { setShowMailList, isSmallScreen } = useUIStore();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const activeThreadId = searchParams.get("threadId");
 
   const handleClick = () => {
     const category = searchParams.get("category");
@@ -55,7 +56,9 @@ export const Email = ({
     router.push(`/mail/${folder}?${params.toString()}`);
   };
 
-  const isSelected = selectedEmail?.threadId === email.threadId;
+  const isSelected =
+    activeThreadId === email.threadId ||
+    selectedThread?.threadId === email.threadId;
 
   const iconData = CATEGORY_ICONS[email.categoryIcon ?? ""];
 

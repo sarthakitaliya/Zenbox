@@ -117,10 +117,13 @@ ${content}
 export const generate_Email_Body = async (promptText: string) => {
   const prompt = `
 You are an email writing assistant.
-Generate a professional email body based on the user's instruction.
+Generate a professional email draft based on the user's instruction.
 
 Rules:
-- Return only the email body text (no markdown, no code block, no title).
+- Return valid JSON only. Do not include markdown or code block.
+- JSON format: {"subject":"...", "body":"..."}
+- Keep "subject" concise and clear.
+- "body" should contain the full email body text.
 - Keep it concise and practical.
 - Include greeting and sign-off when appropriate.
 
@@ -129,5 +132,57 @@ ${promptText}
   `;
 
   const generated = await generateResponse(prompt);
-  return generated?.trim() || "Could not generate email body.";
+  const raw = generated?.trim() || "";
+  if (!raw) {
+    return { subject: "", body: "Could not generate email body." };
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    const draft = {
+      subject: String(parsed?.subject || "").trim(),
+      body: String(parsed?.body || "").trim(),
+    };
+    if (!draft.subject) {
+      const subjectOnly = await generateResponse(`
+Generate one concise email subject line based on this request.
+Return plain text only.
+Request: ${promptText}
+      `);
+      draft.subject = (subjectOnly || "").trim().replace(/^["']|["']$/g, "");
+    }
+    return draft;
+  } catch {
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const draft = {
+          subject: String(parsed?.subject || "").trim(),
+          body: String(parsed?.body || "").trim(),
+        };
+        if (!draft.subject) {
+          const subjectOnly = await generateResponse(`
+Generate one concise email subject line based on this request.
+Return plain text only.
+Request: ${promptText}
+          `);
+          draft.subject = (subjectOnly || "").trim().replace(/^["']|["']$/g, "");
+        }
+        return draft;
+      } catch {
+        // fall through
+      }
+    }
+
+    const subjectOnly = await generateResponse(`
+Generate one concise email subject line based on this request.
+Return plain text only.
+Request: ${promptText}
+    `);
+    return {
+      subject: (subjectOnly || "").trim().replace(/^["']|["']$/g, ""),
+      body: raw,
+    };
+  }
 };

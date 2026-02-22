@@ -68,8 +68,14 @@ export const generateEmailBody = async (req: Request, res: Response, next: NextF
       return;
     }
 
-    const body = await generate_Email_Body(prompt);
-    res.status(200).json({ success: true, data: { body } });
+    const draft = await generate_Email_Body(prompt);
+    res.status(200).json({
+      success: true,
+      data: {
+        subject: draft.subject,
+        body: draft.body,
+      },
+    });
   } catch (error) {
     console.error("Error generating email body:", error);
     next(error);

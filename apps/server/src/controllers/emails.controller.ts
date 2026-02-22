@@ -150,3 +150,28 @@ export const sendEmail = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to send email" });
   }
 };
+
+export const replyEmail = async (req: Request, res: Response) => {
+  const { threadId, to, subject, body } = req.body as {
+    threadId?: string;
+    to?: string;
+    subject?: string;
+    body?: string;
+  };
+
+  if (!threadId || !to || !subject || !body) {
+    res.status(400).json({
+      message: "threadId, to, subject, and body are required",
+    });
+    return;
+  }
+
+  try {
+    const gmail = new gmailClient();
+    await gmail.init(req.user.id);
+    const result = await gmail.replyToThread({ threadId, to, subject, body });
+    res.status(200).json({ message: "Reply sent", data: result });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to send reply" });
+  }
+};

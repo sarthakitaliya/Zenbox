@@ -99,6 +99,21 @@ const sendEmail = async (payload: { to: string; subject: string; body: string })
   }
 };
 
+const replyEmail = async (payload: {
+  threadId: string;
+  to: string;
+  subject: string;
+  body: string;
+}) => {
+  try {
+    const response = await api.post(`/emails/reply`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error sending reply:", error);
+    return handleError(error);
+  }
+};
+
 export const apiEmail = {
   getEmails,
   getFullEmail,
@@ -109,4 +124,5 @@ export const apiEmail = {
   unstarThread,
   unarchiveThread,
   sendEmail,
+  replyEmail,
 }

@@ -9,6 +9,7 @@ export const useUIStore = create<State>((set) => ({
   isSmallScreen: false,
   composeOpen: false,
   composeMinimized: false,
+  composeDraft: null,
   error: null,
   message: null,
   setLoading: (v) => set({ loading: v }),
@@ -21,7 +22,21 @@ export const useUIStore = create<State>((set) => ({
   setIsSmallScreen: (v) => set((state) => ({ isSmallScreen: v })),
   setComposeOpen: (v) => set({ composeOpen: v }),
   setComposeMinimized: (v) => set({ composeMinimized: v }),
+  setComposeDraft: (v) => set({ composeDraft: v }),
 }));
+
+type ComposeDraft = {
+  to: string;
+  subject: string;
+  body: string;
+  threadId?: string;
+  replyContext?: {
+    originalSubject: string;
+    originalBody: string;
+    recipientName?: string;
+    recipientEmail?: string;
+  };
+};
 
 interface State {
   loading: boolean;
@@ -34,6 +49,7 @@ interface State {
   isSmallScreen: boolean;
   composeOpen: boolean;
   composeMinimized: boolean;
+  composeDraft: ComposeDraft | null;
   setLoading: (v: boolean) => void;
   setError: (msg: string | null) => void;
   setMessage: (msg: string | null) => void;
@@ -44,4 +60,5 @@ interface State {
   setIsSmallScreen: (v: boolean) => void;
   setComposeOpen: (v: boolean) => void;
   setComposeMinimized: (v: boolean) => void;
+  setComposeDraft: (v: ComposeDraft | null) => void;
 }

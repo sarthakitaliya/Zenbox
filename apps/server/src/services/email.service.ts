@@ -22,12 +22,16 @@ export const getEmailById = async (userId: string, threadId: string) => {
   try {
     const g = new gmailClient();
     await g.init(userId);
-    const mailCategory = await prismaClient.mail.findUnique({
-      where: { gmailId: threadId },
+    const mailCategory = await prismaClient.mail.findFirst({
+      where: {
+        userId,
+        OR: [{ threadId }, { gmailId: threadId }],
+      },
       select: {
         category: {
           select: {
             icon: true,
+            name: true,
           }
         }
       }
@@ -36,6 +40,7 @@ export const getEmailById = async (userId: string, threadId: string) => {
     return {
       ...email,
       categoryIcon: mailCategory?.category?.icon ?? null,
+      categoryName: mailCategory?.category?.name ?? null,
     };
   } catch (error) {
     console.error("Error fetching email:", error);

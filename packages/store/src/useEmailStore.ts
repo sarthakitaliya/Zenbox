@@ -48,6 +48,7 @@ interface selectedEmail {
   subject: string;
   messageCount: number;
   categoryIcon?: string;
+  categoryName?: string;
   messages: threadEmail[];
 }
 
@@ -79,6 +80,12 @@ interface State {
   starThread: (threadId: string) => Promise<any>;
   unstarThread: (threadId: string) => Promise<any>;
   sendEmail: (payload: { to: string; subject: string; body: string }) => Promise<any>;
+  replyEmail: (payload: {
+    threadId: string;
+    to: string;
+    subject: string;
+    body: string;
+  }) => Promise<any>;
 }
 
 export const useEmailStore = create<State>((set, get) => ({
@@ -354,6 +361,26 @@ export const useEmailStore = create<State>((set, get) => ({
     } catch (error) {
       console.error("Failed to send email", error);
       setError("Failed to send email");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  },
+  replyEmail: async (payload) => {
+    try {
+      setLoading(true);
+      const res = await apiEmail.replyEmail(payload);
+      set((state) => ({
+        lastFetchedAtByFolder: {
+          ...state.lastFetchedAtByFolder,
+          inbox: 0,
+          sent: 0,
+        },
+      }));
+      return res;
+    } catch (error) {
+      console.error("Failed to send reply", error);
+      setError("Failed to send reply");
       throw error;
     } finally {
       setLoading(false);

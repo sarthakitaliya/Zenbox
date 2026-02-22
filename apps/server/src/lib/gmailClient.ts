@@ -278,4 +278,78 @@ export class gmailClient {
       throw new Error("Failed to send mail");
     }
   }
+
+  async replyToThread({
+    threadId,
+    to,
+    subject,
+    body,
+  }: {
+    threadId: string;
+    to: string;
+    subject: string;
+    body: string;
+  }) {
+    try {
+      const thread = await this.gmail.users.threads.get({
+        userId: "me",
+        id: threadId,
+        format: "metadata",
+        metadataHeaders: ["Message-ID", "References"],
+      });
+
+      const messages = thread.data.messages || [];
+      const latestMessage = messages[messages.length - 1];
+      const headers = latestMessage?.payload?.headers || [];
+
+      const getHeader = (key: string) =>
+        headers.find((h: any) => h.name?.toLowerCase() === key.toLowerCase())
+          ?.value;
+
+      const messageId = getHeader("Message-ID");
+      const references = getHeader("References");
+
+      const finalSubject = subject.toLowerCase().startsWith("re:")
+        ? subject
+        : `Re: ${subject}`;
+
+      const rawHeaders = [
+        `To: ${to}`,
+        "Content-Type: text/plain; charset=\"UTF-8\"",
+        "MIME-Version: 1.0",
+        `Subject: ${finalSubject}`,
+      ];
+
+      if (messageId) {
+        rawHeaders.push(`In-Reply-To: ${messageId}`);
+      }
+
+      if (references || messageId) {
+        rawHeaders.push(
+          `References: ${[references, messageId].filter(Boolean).join(" ")}`
+        );
+      }
+
+      const message = [...rawHeaders, "", body].join("\r\n");
+
+      const encodedMessage = Buffer.from(message)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+      const response = await this.gmail.users.messages.send({
+        userId: "me",
+        requestBody: {
+          raw: encodedMessage,
+          threadId,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error("Error replying to thread:", error);
+      throw new Error("Failed to reply to thread");
+    }
+  }
 }
