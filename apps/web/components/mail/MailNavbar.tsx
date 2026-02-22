@@ -1,17 +1,20 @@
-import { Funnel, ListFilter, Menu, RefreshCcw, Search, X } from "lucide-react";
-import Toggle from "./Toggle";
-import { useRouter, useSearchParams } from "next/navigation";
+import { ListFilter, Menu, RefreshCcw, Search, X } from "lucide-react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCategoryStore, useEmailStore, useUIStore } from "@repo/store";
+import { toast } from "sonner";
 
 export const MailNavbar = () => {
   const searchParams = useSearchParams();
+  const params = useParams();
   const router = useRouter();
   const [searchText, setSearchText] = useState(searchParams.get("q") || "");
 
   const { fetchCategories, categories } = useCategoryStore();
-  const { filterEmails } = useEmailStore();
+  const { filterEmails, getEmails } = useEmailStore();
   const { setSidebarOpen, sidebarOpen } = useUIStore();
+  const folder = Array.isArray(params.folder) ? params.folder[0] : params.folder;
+  const activeFolder = folder || "inbox";
 
   useEffect(() => {
     fetchCategories();
@@ -72,6 +75,15 @@ export const MailNavbar = () => {
     setSearchText("");
     updateQueryParams({ query: "" });
   };
+
+  const handleRefresh = async () => {
+    try {
+      await getEmails(activeFolder, { forceRefresh: true });
+      toast.success("Inbox refreshed");
+    } catch (error) {
+      toast.error("Failed to refresh emails");
+    }
+  };
   return (
     <div className="flex flex-col gap-2 bg-[#1A1A1A] sticky top-0 z-10">
       <div className="flex items-center justify-between p-5 border-b border-[#3f3f3f7a]">
@@ -79,9 +91,15 @@ export const MailNavbar = () => {
           <Menu size={17} className="text-gray-400" onClick={() => setSidebarOpen(!sidebarOpen)} />
         </div>
         <div className="flex space-x-4 items-center">
-          <Toggle />
-          <div className="border-l h-4 border-[#75757562]" />
-          <RefreshCcw className="cursor-pointer text-gray-400" size={17} />
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="rounded p-1 text-gray-400 hover:bg-[#2a2a2a] hover:text-gray-200 cursor-pointer"
+            title="Refresh"
+            aria-label="Refresh emails"
+          >
+            <RefreshCcw size={17} />
+          </button>
         </div>
       </div>
 

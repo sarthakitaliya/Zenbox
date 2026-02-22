@@ -9,10 +9,10 @@ export const Features = () => {
         <div className="mb-10 max-w-2xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">Features</p>
           <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            Built for focused email workflows
+            Built for real inbox workflows
           </h2>
           <p className="mt-4 text-slate-600">
-            Essential tools only, designed to reduce clutter and help you triage faster.
+            Every feature shown here is implemented in this build and ready to demo.
           </p>
         </div>
 

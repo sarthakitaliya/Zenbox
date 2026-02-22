@@ -7,6 +7,7 @@ import authRouter from './routes/auth.route';
 import categoriesRouter from './routes/categories.route';
 import emailsRouter from './routes/emails.route';
 import aiRouter from './routes/ai.route';
+import adminRouter from './routes/admin.route';
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.get('/health', (req, res) => {
   res.send('Hello World!');
 });
 
+app.use('/api/admin', adminRouter);
 app.use("/api/auth", authMiddleware, authRouter)
 app.use("/api/categories", authMiddleware, categoriesRouter)
 app.use("/api/emails", authMiddleware, emailsRouter)

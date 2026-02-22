@@ -1,8 +1,9 @@
-import { BsGithub, BsTwitter, BsLinkedin, BsDiscord } from "react-icons/bs";
+import { BsGithub } from "react-icons/bs";
 
 export const socialLinks = [
-    { name: 'GitHub', icon: BsGithub, href: '#' },
-    { name: 'Twitter', icon: BsTwitter, href: '#' },
-    { name: 'LinkedIn', icon: BsLinkedin, href: '#' },
-    { name: 'Discord', icon: BsDiscord, href: '#' },
-]
+  {
+    name: 'GitHub',
+    icon: BsGithub,
+    href: 'https://github.com/sarthakitaliya/Zynbox',
+  },
+];

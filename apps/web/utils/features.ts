@@ -3,41 +3,39 @@ import {
     BsTag, 
     BsSearch, 
     BsRobot, 
-    BsGear, 
     BsFileText,
-    BsFilter,
     BsEye
 } from 'react-icons/bs'
 
 export const features = [
     {
         icon: BsTag,
-        title: "AI-Based Categorization",
-        description: "Automatically sorts incoming emails into custom user-defined categories."
+        title: "Category Setup Guard",
+        description: "Protected flow ensures users define categories before using the main inbox experience."
     },
     {
         icon: BsInbox,
-        title: "Smart Inbox View",
-        description: "Unified inbox with filters for categories, starred, drafts, sent, spam, and trash."
+        title: "AI Initial Categorization",
+        description: "First inbox sync can auto-categorize recent emails into your custom category set."
     },
     {
         icon: BsFileText,
-        title: "AI Summaries",
-        description: "Generates concise summaries of long emails for quick reading."
-    },
-    {
-        icon: BsSearch,
-        title: "Search & Filter",
-        description: "Search by sender, keyword, category with powerful filtering options."
+        title: "AI Summary in Mail Detail",
+        description: "Generate quick summaries while reading an email thread to reduce scanning time."
     },
     {
         icon: BsRobot,
-        title: "AI Reply Suggestions",
-        description: "Context-aware, auto-generated reply drafts for faster responses."
+        title: "AI Assist in Compose + Reply",
+        description: "Create draft body and subject suggestions for compose/reply directly inside your workflow."
     },
     {
-        icon: BsGear,
-        title: "Category Management",
-        description: "Create, edit, and manage up to four personalized categories with icons and descriptions."
+        icon: BsSearch,
+        title: "Search + Folder Workflow",
+        description: "Search across sender/subject/snippet and triage with star, archive, spam, and trash actions."
+    },
+    {
+        icon: BsEye,
+        title: "Moderation Support",
+        description: "Admin APIs support user listing, activity visibility, and delete actions for demo moderation."
     }
 ]

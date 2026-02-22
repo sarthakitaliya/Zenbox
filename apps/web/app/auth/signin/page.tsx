@@ -2,7 +2,7 @@
 
 import { authClient } from "@/lib/auth-client";
 import { FcGoogle } from "react-icons/fc";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEnvelope } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 
@@ -12,9 +12,11 @@ export default function SignIn() {
   const router = useRouter();
   const JUST_SIGNED_IN_KEY = "zenbox:just-signed-in";
 
-  if (session) {
-    router.push("/mail/inbox");
-  }
+  useEffect(() => {
+    if (session) {
+      router.replace("/mail/inbox");
+    }
+  }, [session, router]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -46,12 +48,11 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-white to-purple-100">
-      <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8">
-          {/* Logo and Title */}
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-6">
           <div className="text-center">
-            <div className="mx-auto h-20 w-20 rounded-full bg-indigo-600 flex items-center justify-center">
+            <div className="mx-auto h-20 w-20 rounded-full bg-slate-900 flex items-center justify-center">
               <FaEnvelope className="h-10 w-10 text-white" />
             </div>
             <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
@@ -62,8 +63,7 @@ export default function SignIn() {
             </p>
           </div>
 
-          {/* Sign In Card */}
-          <div className="mt-8 rounded-2xl bg-white p-8 shadow-xl ring-1 ring-gray-200">
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-xl">
             <div className="space-y-6">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">
@@ -74,11 +74,10 @@ export default function SignIn() {
                 </p>
               </div>
 
-              {/* Google Sign In Button */}
               <button
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
-                className="group relative flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:hover:bg-white disabled:hover:shadow-sm"
+                className="group relative flex w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:opacity-50 disabled:hover:bg-white disabled:hover:shadow-sm cursor-pointer"
               >
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                   <FcGoogle className="h-5 w-5" />
@@ -96,11 +95,10 @@ export default function SignIn() {
                 )}
               </button>
 
-              {/* Features List */}
               <div className="mt-8 space-y-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-slate-700" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -110,7 +108,7 @@ export default function SignIn() {
                 </div>
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-slate-700" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>

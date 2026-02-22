@@ -8,15 +8,15 @@ export const Hero = () => {
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-24">
         <div className="space-y-6">
           <p className="inline-flex rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-600">
-            AI email assistant
+            AI Gmail workflow assistant
           </p>
 
           <h1 className="text-4xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-5xl">
-            Keep your inbox clean without changing how you work.
+            Organize Gmail faster with AI-powered inbox workflows.
           </h1>
 
           <p className="max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-            Zenbox auto-organizes incoming emails into categories you define, so important messages stay visible and low-value noise stays out of the way.
+            Zenbox helps you set categories, auto-classify emails, summarize long threads, and generate compose/reply drafts so triage stays quick and clean.
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -34,17 +34,6 @@ export const Hero = () => {
             </a>
           </div>
 
-          <div className="flex items-center gap-6 pt-2 text-sm text-slate-500">
-            <div>
-              <p className="text-lg font-semibold text-slate-900">99.9%</p>
-              <p>Categorization precision</p>
-            </div>
-            <div className="h-10 w-px bg-slate-200" />
-            <div>
-              <p className="text-lg font-semibold text-slate-900">5h / week</p>
-              <p>Average time saved</p>
-            </div>
-          </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -55,10 +44,10 @@ export const Hero = () => {
 
           <div className="space-y-3">
             {[
-              { sender: 'Google', subject: 'Security alert', label: 'Security' },
+              { sender: 'Google', subject: 'Security alert', label: 'Other' },
               { sender: 'Stripe', subject: 'Payment received', label: 'Finance' },
               { sender: 'GitHub', subject: 'Pull request review', label: 'Work' },
-              { sender: 'Notion', subject: 'Weekly digest', label: 'Updates' }
+              { sender: 'Notion', subject: 'Weekly digest', label: 'Starred' }
             ].map((item) => (
               <div key={item.sender + item.subject} className="rounded-lg border border-slate-200 p-3">
                 <div className="mb-1 flex items-center justify-between gap-3">

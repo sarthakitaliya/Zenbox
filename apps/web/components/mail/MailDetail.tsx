@@ -191,10 +191,6 @@ export const MailDetail = () => {
   };
   const iconData = CATEGORY_ICONS[selectedThread?.categoryIcon ?? ""];
 
-  if (isSmallScreen && !selectedThread) {
-    return null;
-  }
-
   const handleArchiveThread = async () => {
     if (selectedThread) {
       const alreadyArchived = !selectedThread.messages[0].labelIds?.includes("INBOX");
@@ -362,6 +358,10 @@ export const MailDetail = () => {
 
     return "Category";
   }, [selectedThread?.categoryName, selectedThread?.threadId, emailsByFolder]);
+
+  if (isSmallScreen && !selectedThread) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-full">

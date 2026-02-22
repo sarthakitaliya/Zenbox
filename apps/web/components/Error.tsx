@@ -1,27 +1,34 @@
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 export default function AuthError() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
   return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-6 shadow-lg">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-md space-y-6 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
           <div>
-            <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-red-600">
+            <h2 className="text-center text-2xl font-semibold tracking-tight text-red-600">
               Authentication Error
             </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
+            <p className="mt-2 text-center text-sm text-slate-600">
               {error || "An error occurred during authentication"}
             </p>
           </div>
-          <div className="mt-8">
-            <a
+          <div className="space-y-2">
+            <Link
               href="/auth/signin"
-              className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="group relative flex w-full justify-center rounded-md bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
             >
               Try Again
-            </a>
+            </Link>
+            <Link
+              href="/"
+              className="group relative flex w-full justify-center rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Back to Home
+            </Link>
           </div>
         </div>
       </div>

@@ -11,10 +11,10 @@ export const CTA = () => {
             <div className="max-w-2xl space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Start now</p>
               <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-                Ready to organize your inbox?
+                Ready to get started with Zenbox?
               </h2>
               <p className="text-slate-600">
-                Connect Gmail, define your categories, and let Zenbox keep your inbox structured from day one.
+                Sign in with Google and start organizing your inbox with a clean, focused workflow.
               </p>
             </div>
 

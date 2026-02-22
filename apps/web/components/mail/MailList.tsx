@@ -1,7 +1,7 @@
 import { MailNavbar } from "./MailNavbar";
 import { Email } from "./Email";
 import { useEffect, useMemo } from "react";
-import { useEmailStore, useAiStore, useUIStore } from "@repo/store";
+import { useEmailStore, useAiStore, useUIStore, useUserStore } from "@repo/store";
 import { EmailSkeleton } from "./EmailListSkeleton";
 import { useParams, useSearchParams } from "next/navigation";
 
@@ -10,12 +10,15 @@ const INITIAL_CATEGORIZATION_KEY = "zenbox:initial-categorization-attempted";
 export const MailList = () => {
   const { getEmails, emails } = useEmailStore();
   const { getcategorizeInitialEmails } = useAiStore();
+  const { user } = useUserStore();
   const { loadingList } = useUIStore();
   const params = useParams();
   const searchParams = useSearchParams();
   const folder = Array.isArray(params.folder) ? params.folder[0] : params.folder;
   const activeFolder = folder || "inbox";
   const query = (searchParams.get("q") || "").trim().toLowerCase();
+
+  const categorizationAttemptKey = `${INITIAL_CATEGORIZATION_KEY}:${user?.id || "anonymous"}`;
 
   useEffect(() => {
     console.log("Fetching emails for folder:", activeFolder);
@@ -28,10 +31,12 @@ export const MailList = () => {
         if (
           activeFolder === "inbox" &&
           typeof window !== "undefined" &&
-          window.sessionStorage.getItem(INITIAL_CATEGORIZATION_KEY) !== "1"
+          window.sessionStorage.getItem(categorizationAttemptKey) !== "1"
         ) {
-          window.sessionStorage.setItem(INITIAL_CATEGORIZATION_KEY, "1");
           const res = await getcategorizeInitialEmails(10);
+          if (res?.success) {
+            window.sessionStorage.setItem(categorizationAttemptKey, "1");
+          }
           if (res.success && (res.data?.newlyCategorizedCount || 0) > 0) {
             await getEmails(activeFolder, { forceRefresh: true });
           }
@@ -41,7 +46,7 @@ export const MailList = () => {
       }
     };
     fetchEmails();
-  }, [activeFolder, getEmails, getcategorizeInitialEmails]);
+  }, [activeFolder, getEmails, getcategorizeInitialEmails, categorizationAttemptKey]);
 
   const visibleEmails = useMemo(() => {
     if (!query) return emails;

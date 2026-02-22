@@ -7,19 +7,20 @@ import Loading from "./Loading";
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const { setUser } = useUserStore();
+  const { setUser, clearUser } = useUserStore();
 
   useEffect(() => {
     if (!isPending && !session) {
-      router.push("/auth/signin");
+      clearUser();
+      router.replace("/auth/signin");
       return;
     }
     if(session && session.user){
       setUser(session.user);    
     }
-  }, [session, isPending]);
+  }, [session, isPending, router, setUser, clearUser]);
 
-  if (isPending) {
+  if (isPending || !session) {
     return <Loading />;
   }
   return <>{children}</>;
