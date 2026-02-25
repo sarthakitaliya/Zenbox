@@ -24,6 +24,10 @@ export interface Email {
     senderEmail?: string;
     senderName?: string;
     to: string;
+    cc?: string;
+    bcc?: string;
+    replyTo?: string;
+    dateTime?: string;
   };
 }
 interface threadEmail {
@@ -42,6 +46,10 @@ interface threadEmail {
   senderEmail?: string;
   senderName?: string;
   to: string;
+  cc?: string;
+  bcc?: string;
+  replyTo?: string;
+  dateTime?: string;
   attachments?: {
     attachmentId: string;
     filename: string;

@@ -45,3 +45,20 @@ export const listFeedback = async (limit: number = 20) => {
 
   return { items };
 };
+
+export const getLatestFeedbackByUser = async (userId: string) => {
+  const item = await prismaClient.feedback.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      message: true,
+      rating: true,
+      createdAt: true,
+    },
+  });
+
+  return { item };
+};

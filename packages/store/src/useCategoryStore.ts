@@ -3,6 +3,8 @@ import { apiCategory } from "@repo/api-client/apis";
 import { useUIStore } from "./useUIStore";
 
 const { setLoading, setError, setMessage } = useUIStore.getState();
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error && error.message ? error.message : fallback;
 export const useCategoryStore = create<State>((set) => ({
   categories: [],
   checkCategories: async (showError = true) => {
@@ -42,8 +44,8 @@ export const useCategoryStore = create<State>((set) => ({
       setLoading(true);
       const newCategory = await apiCategory.createCategory(categoryData);
       set((state) => ({ categories: [...state.categories, newCategory] }));
-    } catch (error: Error | any) {
-      setError(error.message || "Failed to create category");
+    } catch (error) {
+      setError(getErrorMessage(error, "Failed to create category"));
       throw error;
     } finally {
       setLoading(false);
@@ -56,7 +58,7 @@ export const useCategoryStore = create<State>((set) => ({
       set((state) => ({ categories: [...state.categories, ...newCategories] }));
     } catch (error) {
       console.error("Failed to create categories", error);
-      setError("Failed to create categories");
+      setError(getErrorMessage(error, "Failed to create categories"));
       throw error;
     } finally {
       setLoading(false);

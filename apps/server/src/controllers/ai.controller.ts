@@ -15,7 +15,7 @@ export const categorizeInitialEmails = async (req: Request, res: Response, next:
       return;
     }
 
-    const limit = parseInt(req.query.limit as string) || 20;
+    const limit = parseInt(req.query.limit as string) || 15;
     const result = await categorize_Initial_Emails(req.user.id, limit);
     res.status(200).json({ success: true, data: result });
   } catch (error) {

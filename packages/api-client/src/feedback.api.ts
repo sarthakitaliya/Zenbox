@@ -30,6 +30,19 @@ export interface AdminFeedbackListResponse {
   items: AdminFeedbackItem[];
 }
 
+export interface MyLatestFeedbackItem {
+  id: string;
+  name: string | null;
+  email: string;
+  message: string;
+  rating: number;
+  createdAt: string;
+}
+
+export interface MyLatestFeedbackResponse {
+  item: MyLatestFeedbackItem | null;
+}
+
 const submitFeedback = async (payload: SubmitFeedbackRequest) => {
   try {
     const response = await api.post<SubmitFeedbackResponse>("/feedback", payload);
@@ -50,7 +63,17 @@ const getAdminFeedback = async (params?: { limit?: number }) => {
   }
 };
 
+const getMyLatestFeedback = async () => {
+  try {
+    const response = await api.get<MyLatestFeedbackResponse>("/feedback/latest");
+    return response.data;
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
 export const apiFeedback = {
   submitFeedback,
   getAdminFeedback,
+  getMyLatestFeedback,
 };

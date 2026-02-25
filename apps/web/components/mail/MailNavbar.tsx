@@ -33,6 +33,19 @@ export const MailNavbar = () => {
     setSearchText(searchParams.get("q") || "");
   }, [searchParams]);
 
+  useEffect(() => {
+    const selectedCategory = (searchParams.get("category") || "").trim();
+    if (!selectedCategory || categories.length === 0) return;
+
+    const isValidCategory = categories.some(
+      (cat) => cat.name.toLowerCase() === selectedCategory.toLowerCase()
+    );
+
+    if (!isValidCategory) {
+      updateQueryParams({ category: "" });
+    }
+  }, [categories, searchParams]);
+
   const updateQueryParams = ({
     category,
     query,
@@ -79,6 +92,12 @@ export const MailNavbar = () => {
   const handleRefresh = async () => {
     try {
       await getEmails(activeFolder, { forceRefresh: true });
+      const currentCategory = searchParams.get("category");
+      if (currentCategory) {
+        filterEmails(currentCategory);
+      } else {
+        filterEmails("all");
+      }
       toast.success("Inbox refreshed");
     } catch (error) {
       toast.error("Failed to refresh emails");

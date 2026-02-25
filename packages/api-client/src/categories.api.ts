@@ -22,8 +22,8 @@ const validateCategory = (category: CategoryInput): void => {
   if (!category.name || category.name.trim() === "" || category.description.trim() === "") {
     throw new Error("Name and description are required");
   }
-  if (category.description && category.description.length > 100) {
-    throw new Error("Description cannot exceed 100 characters");
+  if (category.description && category.description.length > 200) {
+    throw new Error("Description cannot exceed 200 characters");
   }
 };
 

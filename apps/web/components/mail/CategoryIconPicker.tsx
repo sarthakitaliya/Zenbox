@@ -17,7 +17,7 @@ export function CategoryIconPicker({
   return (
     <Listbox value={value} onChange={onChange}>
       <div className="relative mt-1">
-        <Listbox.Button className="relative w-full cursor-default rounded-lg bg-zinc-900 py-2 pl-3 pr-10 text-left text-white border border-zinc-700">
+        <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-zinc-900 py-2 pl-3 pr-10 text-left text-white border border-zinc-700">
           <span className="flex items-center gap-2">
             {selected && (
               <div
@@ -47,7 +47,7 @@ export function CategoryIconPicker({
               <Listbox.Option
                 key={key}
                 className={({ active }) =>
-                  `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                  `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                     active ? "bg-zinc-800 text-white" : "text-gray-300"
                   }`
                 }

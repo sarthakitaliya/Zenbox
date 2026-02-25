@@ -3,7 +3,7 @@
 
 import { apiFeedback } from "@repo/api-client/apis";
 import { useUserStore } from "@repo/store";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
@@ -13,6 +13,11 @@ export default function SettingsPage() {
   const [rating, setRating] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [latestFeedback, setLatestFeedback] = useState<{
+    message: string;
+    rating: number;
+    createdAt: string;
+  } | null>(null);
 
   const submitDisabled = useMemo(
     () => submitting || !message.trim() || !email.trim() || !rating,
@@ -47,12 +52,39 @@ export default function SettingsPage() {
       toast.success(res.message || "Feedback submitted");
       setMessage("");
       setRating("");
+      const latest = await apiFeedback.getMyLatestFeedback();
+      if (latest?.item) {
+        setLatestFeedback({
+          message: latest.item.message,
+          rating: latest.item.rating,
+          createdAt: latest.item.createdAt,
+        });
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit feedback");
     } finally {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const res = await apiFeedback.getMyLatestFeedback();
+        if (res?.item) {
+          setLatestFeedback({
+            message: res.item.message,
+            rating: res.item.rating,
+            createdAt: res.item.createdAt,
+          });
+        }
+      } catch {
+        // Keep settings usable even if latest feedback fetch fails.
+      }
+    };
+
+    fetchLatest();
+  }, []);
 
   return (
     <div className="p-4 md:p-5 text-white">
@@ -63,11 +95,21 @@ export default function SettingsPage() {
 
       <section className="max-w-2xl rounded-xl border border-[#2A2A2E] bg-[#171718] p-4 md:p-5">
         <h3 className="text-lg font-medium">Submit Feedback</h3>
-        <p className="text-sm text-gray-400 mt-1 mb-4">
-          This form is available only for logged-in users.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
+        {latestFeedback && (
+          <div className="mt-3 rounded-lg border border-[#2f2f35] bg-[#141416] px-3 py-2 text-xs text-gray-300">
+            <p>
+              Last submitted on{" "}
+              <span className="text-gray-100">
+                {new Date(latestFeedback.createdAt).toLocaleString()}
+              </span>{" "}
+              with rating <span className="text-gray-100">{latestFeedback.rating}/5</span>
+            </p>
+            <p className="mt-1 truncate text-gray-400" title={latestFeedback.message}>
+              {latestFeedback.message}
+            </p>
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-3 mt-4">
           <div>
             <label htmlFor="feedback-name" className="mb-1 block text-sm text-gray-300">
               Name (optional)
@@ -138,7 +180,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={submitDisabled}
-            className="inline-flex items-center rounded-md bg-[#2c5edb] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#3f6be0] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            className="inline-flex items-center rounded-md border border-[#3a3a40] bg-[#222226] px-4 py-2 text-sm font-medium text-gray-100 transition hover:bg-[#2b2b30] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
           >
             {submitting ? "Submitting..." : "Submit Feedback"}
           </button>

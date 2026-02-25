@@ -18,6 +18,7 @@ export default function AdminDashboardPage() {
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<AdminFeedbackItem[]>([]);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [selectedFeedback, setSelectedFeedback] = useState<AdminFeedbackItem | null>(null);
   const [pendingDeleteUser, setPendingDeleteUser] = useState<AdminUserListItem | null>(
     null
   );
@@ -175,7 +176,8 @@ export default function AdminDashboardPage() {
                           <th className="text-left py-2 pr-3">Submitted At</th>
                           <th className="text-left py-2 pr-3">From</th>
                           <th className="text-left py-2 pr-3">Rating</th>
-                          <th className="text-left py-2">Message</th>
+                          <th className="text-left py-2 pr-3">Message</th>
+                          <th className="text-left py-2">Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -198,6 +200,15 @@ export default function AdminDashboardPage() {
                                 <p className="max-w-[420px] truncate" title={item.message}>
                                   {item.message}
                                 </p>
+                              </td>
+                              <td className="py-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedFeedback(item)}
+                                  className="rounded-md border border-[#3a3a40] bg-[#222226] px-2.5 py-1 text-xs text-gray-200 hover:bg-[#2b2b30] cursor-pointer"
+                                >
+                                  View
+                                </button>
                               </td>
                             </tr>
                           );
@@ -242,6 +253,41 @@ export default function AdminDashboardPage() {
                 className="rounded-md border border-red-500/60 bg-red-500/20 px-3 py-1.5 text-sm text-red-200 hover:bg-red-500/30 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
                 {deletingUserId === pendingDeleteUser.id ? "Deleting..." : "Delete User"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-2xl rounded-xl border border-[#2A2A2E] bg-[#171718] p-5 shadow-xl">
+            <h3 className="text-lg font-semibold text-white">Feedback Details</h3>
+            <div className="mt-3 space-y-2 text-sm text-gray-300">
+              <p>
+                <span className="text-gray-500">Submitted At:</span>{" "}
+                {new Date(selectedFeedback.createdAt).toLocaleString()}
+              </p>
+              <p>
+                <span className="text-gray-500">From:</span>{" "}
+                {selectedFeedback.name || selectedFeedback.user?.name || "Anonymous"} (
+                {selectedFeedback.email || selectedFeedback.user?.email || "-"})
+              </p>
+              <p>
+                <span className="text-gray-500">Rating:</span> {selectedFeedback.rating}/5
+              </p>
+            </div>
+            <div className="mt-4 rounded-lg border border-[#2f2f35] bg-[#141416] p-3">
+              <p className="whitespace-pre-wrap text-sm text-gray-200">
+                {selectedFeedback.message}
+              </p>
+            </div>
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedFeedback(null)}
+                className="rounded-md border border-[#3a3a40] bg-[#222226] px-3 py-1.5 text-sm text-gray-200 hover:bg-[#2b2b30] cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>

@@ -1,7 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { ValidationError } from "../utils/errors";
 import { submitFeedbackSchema } from "../schemas/feedback.schema";
-import { createFeedback, listFeedback } from "../services/feedback.service";
+import {
+  createFeedback,
+  getLatestFeedbackByUser,
+  listFeedback,
+} from "../services/feedback.service";
 
 export const submitFeedback = async (
   req: Request,
@@ -36,6 +40,19 @@ export const getAdminFeedback = async (
     }
 
     const result = await listFeedback(parsedLimit);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyLatestFeedback = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const result = await getLatestFeedbackByUser(req.user.id);
     res.status(200).json(result);
   } catch (error) {
     next(error);

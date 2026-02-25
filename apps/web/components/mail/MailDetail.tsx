@@ -1,5 +1,5 @@
 import { useEmailStore, useUIStore, useUserStore } from "@repo/store";
-import { Archive, Download, Reply, Send, Sparkles, Star, Trash2, X } from "lucide-react";
+import { Archive, ChevronDown, Download, Reply, Send, Sparkles, Star, Trash2, X } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +36,32 @@ const stripHtml = (html: string) =>
     .replace(/<[^>]*>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+const buildEmailSrcDoc = (content: string) => `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src data: https: http:; style-src 'unsafe-inline' https: http: data:; font-src data: https: http:; media-src data: https: http:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';"
+    />
+    <style>
+      html, body { margin: 0; padding: 0; }
+      img { max-width: 100%; height: auto; }
+      table { max-width: 100%; }
+      body { overflow-wrap: anywhere; }
+    </style>
+  </head>
+  <body>${content}</body>
+</html>`;
+
+const extractEmails = (value?: string) => {
+  if (!value) return [];
+  const matches = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi);
+  if (matches && matches.length > 0) return matches.map((email) => email.toLowerCase());
+  return [value.toLowerCase().trim()];
+};
 
 const parseRgb = (value: string): [number, number, number] | null => {
   const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
@@ -137,6 +163,7 @@ export const MailDetail = () => {
 
   const [openMessageIndex, setOpenMessageIndex] = useState<number>(-1);
   const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<string | null>(null);
+  const [openDetailsMessageId, setOpenDetailsMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     if (mailId && selectedThread?.threadId !== mailId) {
@@ -153,6 +180,10 @@ export const MailDetail = () => {
       setOpenMessageIndex(selectedThread.messages.length - 1);
     }
   }, [selectedThread]);
+
+  useEffect(() => {
+    setOpenDetailsMessageId(null);
+  }, [selectedThread?.threadId, openMessageIndex]);
 
   useEffect(() => {
     const run = () => {
@@ -393,6 +424,7 @@ export const MailDetail = () => {
 
     return "Category";
   }, [selectedThread?.categoryName, selectedThread?.threadId, emailsByFolder]);
+  const currentUserEmail = (user?.email || "").toLowerCase().trim();
 
   if (isSmallScreen && !selectedThread) {
     return null;
@@ -519,13 +551,77 @@ export const MailDetail = () => {
                       <div className="h-10 w-10 rounded-full bg-gray-700 flex items-center justify-center text-white text-sm font-bold uppercase">
                         {email.senderName?.charAt(0) ?? "?"}
                       </div>
-                      <div className="text-white font-medium">
-                        {email.senderName || email.from}
-                        <p className="text-sm text-gray-500">To: You</p>
+                      <div className="min-w-0 text-white">
+                        <p className="truncate font-medium">
+                          {email.senderName || email.from}
+                          {email.senderEmail && (
+                            <span className="ml-2 text-sm font-normal text-gray-400">
+                              {email.senderEmail}
+                            </span>
+                          )}
+                        </p>
+                        <div
+                          className="relative mt-0.5 flex items-center gap-1 text-xs text-gray-500"
+                          onMouseEnter={() => setOpenDetailsMessageId(email.id)}
+                          onMouseLeave={() => setOpenDetailsMessageId(null)}
+                        >
+                          <span className="truncate">
+                            To:{" "}
+                            {extractEmails(email.to).includes(currentUserEmail)
+                              ? "me"
+                              : email.to || "You"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setOpenDetailsMessageId((prev) =>
+                                prev === email.id ? null : email.id
+                              );
+                            }}
+                            className="rounded p-0.5 text-gray-400 transition hover:bg-[#2a2a2a] hover:text-gray-200 cursor-pointer"
+                            aria-label="Show message details"
+                          >
+                            <ChevronDown size={12} />
+                          </button>
+                          {openDetailsMessageId === email.id && (
+                            <div className="absolute left-0 top-6 z-20 w-[320px] max-w-[80vw] rounded-lg border border-[#2f2f2f] bg-[#141414] p-3 text-xs text-gray-300 shadow-xl">
+                              <p className="truncate">
+                                <span className="text-gray-500">From:</span>{" "}
+                                {email.from || email.senderEmail || "-"}
+                              </p>
+                              <p className="truncate">
+                                <span className="text-gray-500">To:</span> {email.to || "-"}
+                              </p>
+                              {email.cc && (
+                                <p className="truncate">
+                                  <span className="text-gray-500">Cc:</span> {email.cc}
+                                </p>
+                              )}
+                              {email.bcc && (
+                                <p className="truncate">
+                                  <span className="text-gray-500">Bcc:</span> {email.bcc}
+                                </p>
+                              )}
+                              {email.replyTo && (
+                                <p className="truncate">
+                                  <span className="text-gray-500">Reply-To:</span> {email.replyTo}
+                                </p>
+                              )}
+                              <p className="truncate">
+                                <span className="text-gray-500">Date:</span>{" "}
+                                {email.dateTime || email.date || "-"}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-400">
-                      {email.date ?? ""}
+                    <div className="text-right text-sm text-gray-400">
+                      <p>{email.date ?? ""}</p>
+                      {email.dateTime && (
+                        <p className="text-xs text-gray-500">{email.dateTime}</p>
+                      )}
                     </div>
                   </div>
                   <AnimatePresence initial={false}>
@@ -537,17 +633,41 @@ export const MailDetail = () => {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div
-                          className="email-html-body mt-3 overflow-x-auto px-2 text-sm leading-relaxed text-gray-200"
-                          ref={(node) => {
-                            if (node) {
-                              fixEmailContrast(node);
-                            }
-                          }}
-                          dangerouslySetInnerHTML={{
-                            __html: email.body?.content ?? "",
-                          }}
-                        />
+                        {(() => {
+                          const bodyContent = email.body?.content ?? "";
+                          const bodyType = (email.body as { type?: string; contentType?: string } | undefined)
+                            ?.type || (email.body as { type?: string; contentType?: string } | undefined)?.contentType;
+                          const isHtmlBody =
+                            bodyType === "html" ||
+                            /<\/?(html|body|table|tr|td|div|span|p|img|a)\b/i.test(bodyContent);
+
+                          if (isHtmlBody) {
+                            return (
+                              <div className="mt-3 overflow-hidden rounded-md border border-[#2b2b2f] bg-white">
+                                <iframe
+                                  title={`email-content-${email.id}`}
+                                  sandbox="allow-popups allow-popups-to-escape-sandbox"
+                                  className="h-[70vh] min-h-[420px] w-full bg-white"
+                                  srcDoc={buildEmailSrcDoc(bodyContent)}
+                                />
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div
+                              className="email-html-body mt-3 overflow-x-auto px-2 text-sm leading-relaxed text-gray-200"
+                              ref={(node) => {
+                                if (node) {
+                                  fixEmailContrast(node);
+                                }
+                              }}
+                              dangerouslySetInnerHTML={{
+                                __html: bodyContent,
+                              }}
+                            />
+                          );
+                        })()}
                         {email.attachments && email.attachments.length > 0 && (
                           <div className="mt-4 rounded-lg border border-[#3f3f3f7a] bg-[#151515] p-3">
                             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">

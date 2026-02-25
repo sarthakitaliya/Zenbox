@@ -12,6 +12,7 @@ import {
   DollarSign,
   MoreHorizontal,
   Tag,
+  ShoppingCart,
 } from "lucide-react";
 
 export const CATEGORY_ICONS: any = {
@@ -24,6 +25,7 @@ export const CATEGORY_ICONS: any = {
   "heart-red": { label: "Favorites", icon: Heart, bg: "bg-red-500" },
   "mail-indigo": { label: "Mail", icon: Mail, bg: "bg-indigo-500" },
   "promotion-yellow": { label: "Promotion", icon: Tag, bg: "bg-yellow-500" },
+  "shopping-emerald": { label: "Shopping", icon: ShoppingCart, bg: "bg-emerald-500" },
   "calendar-rose": { label: "Events", icon: Calendar, bg: "bg-rose-500" },
   "file-gray": { label: "Documents", icon: FileText, bg: "bg-gray-500" },
   "other-gray": { label: "Other", icon: MoreHorizontal, bg: "bg-gray-400" },

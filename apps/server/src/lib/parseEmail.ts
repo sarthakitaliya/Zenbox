@@ -15,10 +15,14 @@ export interface ParsedEmail {
   snippet?: string;
   from: string;
   senderEmail: string;
+  replyTo?: string;
   profileImage: string;
   to?: string;
+  cc?: string;
+  bcc?: string;
   subject: string;
   date?: string;
+  dateTime?: string;
   labelIds?: string[];
   body?: {
     content: string;
@@ -64,6 +68,19 @@ function formatEmailDate(rawDate?: string): string | undefined {
   }); // e.g., "Jun 02"
 }
 
+function formatEmailDateTime(rawDate?: string): string | undefined {
+  if (!rawDate) return undefined;
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) return rawDate;
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function extractBody(payload: any): { content: string; type: "html" | "plain" } {
   let htmlContent: string | null = null;
   let plainContent: string | null = null;
@@ -74,8 +91,19 @@ function extractBody(payload: any): { content: string; type: "html" | "plain" } 
     if (node.mimeType === "text/html" && node.body?.data) {
       const html = Buffer.from(node.body.data, "base64").toString("utf-8");
       htmlContent = purifier.sanitize(html, {
-         FORBID_TAGS: ["script", "iframe"],
-          ALLOWED_ATTR: ["style", "class", "href", "src", "alt", "width", "height", "align"],
+        FORBID_TAGS: [
+          "script",
+          "iframe",
+          "object",
+          "embed",
+          "form",
+          "input",
+          "button",
+          "textarea",
+          "select",
+          "option",
+        ],
+        ADD_TAGS: ["style", "link", "meta", "head", "html", "body"],
       });
     }
 
@@ -98,8 +126,19 @@ function extractBody(payload: any): { content: string; type: "html" | "plain" } 
     const type = payload.mimeType === "text/html" ? "html" : "plain";
     if (type === "html") {
       htmlContent = purifier.sanitize(fallback, {
-       FORBID_TAGS: ["script", "iframe"],
-  ALLOWED_ATTR: ["style", "class", "href", "src", "alt", "width", "height", "align"],
+        FORBID_TAGS: [
+          "script",
+          "iframe",
+          "object",
+          "embed",
+          "form",
+          "input",
+          "button",
+          "textarea",
+          "select",
+          "option",
+        ],
+        ADD_TAGS: ["style", "link", "meta", "head", "html", "body"],
       });
     } else {
       const linkified = linkifyHtml(fallback.replace(/\r?\n/g, "<br>"), { target: "_blank" });
@@ -144,8 +183,13 @@ export function parseEmail(mail: any): ParsedEmail {
   const headers: GmailHeader[] = mail.payload.headers || [];
   const from = extractHeader(headers, "From") || "(Unknown)";
   const to = extractHeader(headers, "To");
+  const cc = extractHeader(headers, "Cc");
+  const bcc = extractHeader(headers, "Bcc");
+  const replyTo = extractHeader(headers, "Reply-To");
   const subject = extractHeader(headers, "Subject") || "(No Subject)";
-  const date = formatEmailDate(extractHeader(headers, "Date"));
+  const rawDate = extractHeader(headers, "Date");
+  const date = formatEmailDate(rawDate);
+  const dateTime = formatEmailDateTime(rawDate);
   const senderEmail = extractEmail(from);
   const profileImage = getGravatarUrl(senderEmail);
   const senderName = extractSenderName(from);
@@ -158,8 +202,12 @@ export function parseEmail(mail: any): ParsedEmail {
     senderName,
     profileImage,
     to,
+    cc,
+    bcc,
+    replyTo,
     subject,
     date,
+    dateTime,
     labelIds: mail.labelIds,
     body: extractBody(mail.payload),
     attachments: extractAttachments(mail.payload),

@@ -24,6 +24,8 @@ export const MailList = () => {
   const folder = Array.isArray(params.folder) ? params.folder[0] : params.folder;
   const activeFolder = folder || "inbox";
   const query = (searchParams.get("q") || "").trim().toLowerCase();
+  const activeCategory = (searchParams.get("category") || "").trim();
+  const isCategoryFiltered = Boolean(activeCategory);
   const hasMore = hasMoreEmails(activeFolder);
   const isLoadingMore = Boolean(loadingMoreByFolder[activeFolder]);
 
@@ -42,7 +44,7 @@ export const MailList = () => {
           typeof window !== "undefined" &&
           window.sessionStorage.getItem(categorizationAttemptKey) !== "1"
         ) {
-          const res = await getcategorizeInitialEmails(20);
+          const res = await getcategorizeInitialEmails(15);
           if (res?.success) {
             window.sessionStorage.setItem(categorizationAttemptKey, "1");
           }
@@ -60,7 +62,7 @@ export const MailList = () => {
   useEffect(() => {
     const target = loadMoreRef.current;
     if (!target) return;
-    if (!hasMore || isLoadingMore || loadingList) return;
+    if (isCategoryFiltered || !hasMore || isLoadingMore || loadingList) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -80,12 +82,18 @@ export const MailList = () => {
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [activeFolder, hasMore, isLoadingMore, loadingList, loadMoreEmails]);
+  }, [activeFolder, hasMore, isLoadingMore, loadingList, loadMoreEmails, isCategoryFiltered]);
 
   const visibleEmails = useMemo(() => {
-    if (!query) return emails;
+    const normalizedCategory = activeCategory.toLowerCase();
+    const categoryScopedEmails = activeCategory
+      ? emails.filter(
+          (email) => (email.categoryName || "").toLowerCase() === normalizedCategory
+        )
+      : emails;
+    if (!query) return categoryScopedEmails;
 
-    return emails.filter((email) => {
+    return categoryScopedEmails.filter((email) => {
       const latest = email.latest;
       const searchableText = [
         latest?.subject,
@@ -101,7 +109,7 @@ export const MailList = () => {
 
       return searchableText.includes(query);
     });
-  }, [emails, query]);
+  }, [emails, query, activeCategory]);
 
   return (
     <div className="flex flex-col h-full">
@@ -134,8 +142,8 @@ export const MailList = () => {
                     folder={activeFolder}
                   />
                 ))}
-                <div ref={loadMoreRef} className="h-1" />
-                {isLoadingMore && (
+                {!isCategoryFiltered && <div ref={loadMoreRef} className="h-1" />}
+                {!isCategoryFiltered && isLoadingMore && (
                   <div className="py-3 text-center text-xs text-gray-500">
                     Loading more emails...
                   </div>

@@ -8,4 +8,9 @@ export type {
   AdminUserListItem,
   AdminUsersListResponse,
 } from "./admin.api";
-export type { AdminFeedbackItem, AdminFeedbackListResponse } from "./feedback.api";
+export type {
+  AdminFeedbackItem,
+  AdminFeedbackListResponse,
+  MyLatestFeedbackItem,
+  MyLatestFeedbackResponse,
+} from "./feedback.api";

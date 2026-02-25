@@ -57,9 +57,9 @@ export default function SetupCategories() {
 
   if (checkingCategorys) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#111112] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-400 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-300 mx-auto"></div>
           <p className="mt-4 text-gray-300">Loading...</p>
         </div>
       </div>
@@ -105,7 +105,11 @@ export default function SetupCategories() {
         router.push("/mail/inbox");
       } catch (error) {
         console.error("Failed to save categories", error);
-        setError("Failed to save categories. Please try again.");
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to save categories. Please try again."
+        );
       }
     }
   };
@@ -123,7 +127,11 @@ export default function SetupCategories() {
       router.push("/mail/inbox");
     } catch (error) {
       console.error("Failed to skip categories", error);
-      setError("Failed to skip categories. Please try again.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to skip categories. Please try again."
+      );
     }
   };
 
@@ -134,7 +142,7 @@ export default function SetupCategories() {
 
   return (
     <RequireAuth>
-      <div className="min-h-screen bg-gray-900">
+      <div className="min-h-screen bg-[#111112]">
         <div className="max-w-2xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -155,12 +163,12 @@ export default function SetupCategories() {
 
             <div className="mt-8 max-w-md mx-auto">
               <div className="relative">
-                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-700">
+                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-[#2A2A2E]">
                   <div
                     style={{
                       width: `${((currentStep + 1) / Math.max(4, categories.length)) * 100}%`,
                     }}
-                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-400 transition-all duration-500"
+                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gray-300 transition-all duration-500"
                   />
                 </div>
                 <div className="flex justify-between">
@@ -170,8 +178,8 @@ export default function SetupCategories() {
                         key={index}
                         className={`flex items-center justify-center w-8 h-8 rounded-full ${
                           index <= currentStep
-                            ? "bg-indigo-500 text-gray-100"
-                            : "bg-gray-700 text-gray-400"
+                            ? "bg-[#2b2b30] text-gray-100 border border-[#3a3a40]"
+                            : "bg-[#1A1A1D] text-gray-500 border border-[#2A2A2E]"
                         }`}
                       >
                         {index + 1}
@@ -189,7 +197,7 @@ export default function SetupCategories() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="bg-gray-800 rounded-2xl shadow-xl p-8"
+            className="bg-[#171718] border border-[#2A2A2E] rounded-2xl shadow-xl p-8"
           >
             <h2 className="text-xl font-semibold text-gray-100 mb-6">
               Add Category {currentStep + 1}
@@ -220,7 +228,7 @@ export default function SetupCategories() {
                   id="name"
                   value={currentCategory.name}
                   onChange={(e) => updateCategory("name", e.target.value)}
-                  className="block w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 placeholder:text-gray-500 text-gray-100"
+                  className="block w-full px-4 py-3 rounded-lg border border-[#323238] bg-[#111112] focus:ring-1 focus:ring-[#4a4a52] focus:border-[#4a4a52] transition-colors duration-200 placeholder:text-gray-500 text-gray-100"
                   placeholder="e.g., Work, Personal, Finance"
                 />
               </div>
@@ -236,7 +244,7 @@ export default function SetupCategories() {
                   value={currentCategory.description}
                   onChange={(e) => updateCategory("description", e.target.value)}
                   rows={3}
-                  className="block w-full px-4 py-3 rounded-lg border border-gray-600 bg-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 placeholder:text-gray-500 text-gray-100"
+                  className="block w-full px-4 py-3 rounded-lg border border-[#323238] bg-[#111112] focus:ring-1 focus:ring-[#4a4a52] focus:border-[#4a4a52] transition-colors duration-200 placeholder:text-gray-500 text-gray-100"
                   placeholder="Describe what this category is for"
                 />
               </div>
@@ -247,7 +255,7 @@ export default function SetupCategories() {
                     <button
                       type="button"
                       onClick={() => setCurrentStep(currentStep - 1)}
-                      className="inline-flex items-center px-6 py-3 border border-gray-600 shadow-sm text-base font-medium rounded-lg text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                      className="inline-flex items-center px-6 py-3 border border-[#3a3a40] shadow-sm text-base font-medium rounded-lg text-gray-200 bg-[#222226] hover:bg-[#2b2b30] focus:outline-none transition-colors duration-200 cursor-pointer"
                     >
                       Back
                     </button>
@@ -258,7 +266,7 @@ export default function SetupCategories() {
                     <button
                       type="button"
                       onClick={handleSkip}
-                      className="inline-flex items-center px-6 py-3 border border-gray-600 shadow-sm text-base font-medium rounded-lg text-gray-300 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                      className="inline-flex items-center px-6 py-3 border border-[#3a3a40] shadow-sm text-base font-medium rounded-lg text-gray-200 bg-[#222226] hover:bg-[#2b2b30] focus:outline-none transition-colors duration-200 cursor-pointer"
                     >
                       Skip
                     </button>
@@ -266,7 +274,7 @@ export default function SetupCategories() {
                   <button
                     type="button"
                     onClick={handleNext}
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                    className="inline-flex items-center px-6 py-3 border border-[#3a3a40] text-base font-medium rounded-lg shadow-sm text-gray-100 bg-[#2b2b30] hover:bg-[#3a3a40] focus:outline-none transition-colors duration-200 cursor-pointer"
                   >
                     {isLastStep ? "Save" : "Next"}
                   </button>

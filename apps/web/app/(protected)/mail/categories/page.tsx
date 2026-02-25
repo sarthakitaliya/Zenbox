@@ -7,6 +7,7 @@ import { Folder, Menu, Pencil, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 const MAX_CATEGORIES = 4;
+const SYSTEM_CATEGORY_NAMES = new Set(["other"]);
 
 export default function CategoriesPage() {
   const { fetchCategories, categories } = useCategoryStore();
@@ -22,11 +23,19 @@ export default function CategoriesPage() {
     fetchCategories();
   }, [fetchCategories]);
 
+  const userCreatedCategoryCount = useMemo(
+    () =>
+      categories.filter(
+        (category) =>
+          !SYSTEM_CATEGORY_NAMES.has((category.name || "").trim().toLowerCase())
+      ).length,
+    [categories]
+  );
   const categoryCount = categories.length;
-  const canCreateMore = categoryCount < MAX_CATEGORIES;
+  const canCreateMore = userCreatedCategoryCount < MAX_CATEGORIES;
   const categoryLimitText = useMemo(
-    () => `${categoryCount}/${MAX_CATEGORIES} categories used`,
-    [categoryCount]
+    () => `${userCreatedCategoryCount}/${MAX_CATEGORIES} categories used`,
+    [userCreatedCategoryCount]
   );
 
   return (
