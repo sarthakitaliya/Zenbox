@@ -1,9 +1,19 @@
 import { api } from "./axiosInstance";
 import { handleError } from "./handleError";
 
-const getEmails = async (filter: string) => {
+export interface EmailListResponse {
+  emails: any[];
+  nextPageToken: string | null;
+}
+
+const getEmails = async (filter: string, pageToken?: string) => {
   try {
-    const response = await api.get(`/emails?filter=${filter}`);
+    const response = await api.get<EmailListResponse>(`/emails`, {
+      params: {
+        filter,
+        ...(pageToken ? { pageToken } : {}),
+      },
+    });
     console.log("Fetched emails:", response.data);
     return response.data;
   } catch (error) {
@@ -114,6 +124,30 @@ const replyEmail = async (payload: {
   }
 };
 
+const downloadAttachment = async (payload: {
+  messageId: string;
+  attachmentId: string;
+  filename?: string;
+  mimeType?: string;
+}) => {
+  const { messageId, attachmentId, filename, mimeType } = payload;
+  if (!messageId || !attachmentId) {
+    throw new Error("messageId and attachmentId are required");
+  }
+
+  try {
+    const response = await api.get(`/emails/attachment`, {
+      params: { messageId, attachmentId, filename, mimeType },
+      responseType: "blob",
+    });
+
+    return response.data as Blob;
+  } catch (error) {
+    console.error("Error downloading attachment:", error);
+    return handleError(error);
+  }
+};
+
 export const apiEmail = {
   getEmails,
   getFullEmail,
@@ -125,4 +159,5 @@ export const apiEmail = {
   unarchiveThread,
   sendEmail,
   replyEmail,
+  downloadAttachment,
 }

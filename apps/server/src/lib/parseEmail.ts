@@ -25,6 +25,14 @@ export interface ParsedEmail {
     type: "html" | "plain";
   };
   senderName?: string;
+  attachments?: ParsedAttachment[];
+}
+
+export interface ParsedAttachment {
+  attachmentId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
 }
 
 function extractHeader(headers: GmailHeader[], key: string): string | undefined {
@@ -105,6 +113,33 @@ function extractBody(payload: any): { content: string; type: "html" | "plain" } 
   return { content: "", type: "plain" };
 }
 
+function extractAttachments(payload: any): ParsedAttachment[] {
+  const attachments: ParsedAttachment[] = [];
+
+  const walkParts = (node: any) => {
+    if (!node) return;
+
+    const filename = String(node.filename || "").trim();
+    const attachmentId = node.body?.attachmentId;
+
+    if (filename && attachmentId) {
+      attachments.push({
+        attachmentId,
+        filename,
+        mimeType: node.mimeType || "application/octet-stream",
+        size: Number(node.body?.size || 0),
+      });
+    }
+
+    if (Array.isArray(node.parts)) {
+      node.parts.forEach(walkParts);
+    }
+  };
+
+  walkParts(payload);
+  return attachments;
+}
+
 export function parseEmail(mail: any): ParsedEmail {
   const headers: GmailHeader[] = mail.payload.headers || [];
   const from = extractHeader(headers, "From") || "(Unknown)";
@@ -126,7 +161,8 @@ export function parseEmail(mail: any): ParsedEmail {
     subject,
     date,
     labelIds: mail.labelIds,
-    body: extractBody(mail.payload)
+    body: extractBody(mail.payload),
+    attachments: extractAttachments(mail.payload),
   };
 }
 

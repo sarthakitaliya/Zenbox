@@ -42,6 +42,12 @@ interface threadEmail {
   senderEmail?: string;
   senderName?: string;
   to: string;
+  attachments?: {
+    attachmentId: string;
+    filename: string;
+    mimeType: string;
+    size: number;
+  }[];
 }
 interface selectedEmail {
   threadId: string;
@@ -61,6 +67,8 @@ interface State {
   allEmails: Email[];
   emailsByFolder: Record<string, Email[]>;
   lastFetchedAtByFolder: Record<string, number>;
+  nextPageTokenByFolder: Record<string, string | null>;
+  loadingMoreByFolder: Record<string, boolean>;
   selectedThread: selectedEmail | null;
   setEmails: (
     updater: Email[] | ((previousEmails: Email[]) => Email[]),
@@ -71,6 +79,8 @@ interface State {
   setSelectedThread: (email: selectedEmail | null) => void;
   clearSelectedEmail: () => void;
   getEmails: (filter: string, options?: GetEmailsOptions) => Promise<Email[]>;
+  loadMoreEmails: (filter: string) => Promise<void>;
+  hasMoreEmails: (filter: string) => boolean;
   getFullEmail: (threadId: string) => Promise<Email>;
   filterEmails: (category: string) => void;
   getRecentEmails: (since: number) => Promise<Email[]>;
@@ -86,6 +96,12 @@ interface State {
     subject: string;
     body: string;
   }) => Promise<any>;
+  downloadAttachment: (payload: {
+    messageId: string;
+    attachmentId: string;
+    filename?: string;
+    mimeType?: string;
+  }) => Promise<Blob>;
 }
 
 export const useEmailStore = create<State>((set, get) => ({
@@ -93,6 +109,8 @@ export const useEmailStore = create<State>((set, get) => ({
   allEmails: [],
   emailsByFolder: {},
   lastFetchedAtByFolder: {},
+  nextPageTokenByFolder: {},
+  loadingMoreByFolder: {},
   selectedThread: null,
   setEmails: (updater, folder = "inbox") => {
     set((state) => {
@@ -147,19 +165,24 @@ export const useEmailStore = create<State>((set, get) => ({
       setLoadingList(true);
       const res = await apiEmail.getEmails(folder);
       console.log("Fetched emails:", res);
+      const emails = res.emails || [];
       set((currentState) => ({
-        emails: res,
-        allEmails: res,
+        emails,
+        allEmails: emails,
         emailsByFolder: {
           ...currentState.emailsByFolder,
-          [folder]: res,
+          [folder]: emails,
         },
         lastFetchedAtByFolder: {
           ...currentState.lastFetchedAtByFolder,
           [folder]: Date.now(),
         },
+        nextPageTokenByFolder: {
+          ...currentState.nextPageTokenByFolder,
+          [folder]: res.nextPageToken ?? null,
+        },
       }));
-      return res;
+      return emails;
     } catch (error) {
       console.error("Failed to fetch emails", error);
       setError("Failed to fetch emails");
@@ -167,6 +190,67 @@ export const useEmailStore = create<State>((set, get) => ({
     } finally {
       setLoadingList(false);
     }
+  },
+  loadMoreEmails: async (filter) => {
+    const folder = filter || "inbox";
+    const state = get();
+    const nextPageToken = state.nextPageTokenByFolder[folder];
+    const loadingMore = state.loadingMoreByFolder[folder];
+    const currentEmails = state.emailsByFolder[folder] || [];
+
+    if (!nextPageToken || loadingMore) {
+      return;
+    }
+
+    try {
+      set((currentState) => ({
+        loadingMoreByFolder: {
+          ...currentState.loadingMoreByFolder,
+          [folder]: true,
+        },
+      }));
+
+      const res = await apiEmail.getEmails(folder, nextPageToken);
+      const incomingEmails = res.emails || [];
+      const existingThreadIds = new Set(currentEmails.map((email) => email.threadId));
+      const dedupedIncoming = incomingEmails.filter(
+        (email) => !existingThreadIds.has(email.threadId)
+      );
+      const mergedEmails = [...currentEmails, ...dedupedIncoming];
+
+      set((currentState) => ({
+        emails: mergedEmails,
+        allEmails: mergedEmails,
+        emailsByFolder: {
+          ...currentState.emailsByFolder,
+          [folder]: mergedEmails,
+        },
+        lastFetchedAtByFolder: {
+          ...currentState.lastFetchedAtByFolder,
+          [folder]: Date.now(),
+        },
+        nextPageTokenByFolder: {
+          ...currentState.nextPageTokenByFolder,
+          [folder]: res.nextPageToken ?? null,
+        },
+      }));
+    } catch (error) {
+      console.error("Failed to load more emails", error);
+      setError("Failed to load more emails");
+      throw error;
+    } finally {
+      set((currentState) => ({
+        loadingMoreByFolder: {
+          ...currentState.loadingMoreByFolder,
+          [folder]: false,
+        },
+      }));
+    }
+  },
+  hasMoreEmails: (filter) => {
+    const folder = filter || "inbox";
+    const token = get().nextPageTokenByFolder[folder];
+    return Boolean(token);
   },
   getFullEmail: async (threadId: string) => {
     try {
@@ -381,6 +465,19 @@ export const useEmailStore = create<State>((set, get) => ({
     } catch (error) {
       console.error("Failed to send reply", error);
       setError("Failed to send reply");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  },
+  downloadAttachment: async (payload) => {
+    try {
+      setLoading(true);
+      const blob = await apiEmail.downloadAttachment(payload);
+      return blob;
+    } catch (error) {
+      console.error("Failed to download attachment", error);
+      setError("Failed to download attachment");
       throw error;
     } finally {
       setLoading(false);

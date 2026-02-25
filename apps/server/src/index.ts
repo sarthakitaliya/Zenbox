@@ -8,6 +8,7 @@ import categoriesRouter from './routes/categories.route';
 import emailsRouter from './routes/emails.route';
 import aiRouter from './routes/ai.route';
 import adminRouter from './routes/admin.route';
+import feedbackRouter from './routes/feedback.route';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use("/api/auth", authMiddleware, authRouter)
 app.use("/api/categories", authMiddleware, categoriesRouter)
 app.use("/api/emails", authMiddleware, emailsRouter)
 app.use("/api/ai", authMiddleware, aiRouter)
+app.use("/api/feedback", authMiddleware, feedbackRouter)
 
 app.use(errorHandler);
 

@@ -6,6 +6,7 @@ import {
   type AdminOverviewStatsResponse,
   type AdminUserListItem,
 } from "@repo/api-client/apis";
+import { apiFeedback, type AdminFeedbackItem } from "@repo/api-client/apis";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminOverviewStatsResponse | null>(null);
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
+  const [feedbackItems, setFeedbackItems] = useState<AdminFeedbackItem[]>([]);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [pendingDeleteUser, setPendingDeleteUser] = useState<AdminUserListItem | null>(
     null
@@ -23,12 +25,14 @@ export default function AdminDashboardPage() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsData, usersData] = await Promise.all([
+      const [statsData, usersData, feedbackData] = await Promise.all([
         apiAdmin.getAdminOverviewStats(),
         apiAdmin.getAdminUsers({ limit: 20 }),
+        apiFeedback.getAdminFeedback({ limit: 20 }),
       ]);
       setStats(statsData);
       setUsers(usersData.users);
+      setFeedbackItems(feedbackData.items || []);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to load admin dashboard data"
@@ -153,6 +157,51 @@ export default function AdminDashboardPage() {
                             </td>
                           </tr>
                         ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+
+              <section className="mt-6 rounded-xl border border-[#2A2A2E] bg-[#171718] p-4 md:p-5">
+                <h2 className="text-lg font-medium mb-3">Recent Feedback</h2>
+                {feedbackItems.length === 0 ? (
+                  <p className="text-sm text-gray-400">No feedback submitted yet.</p>
+                ) : (
+                  <div className="overflow-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-gray-400 border-b border-[#2A2A2E]">
+                          <th className="text-left py-2 pr-3">Submitted At</th>
+                          <th className="text-left py-2 pr-3">From</th>
+                          <th className="text-left py-2 pr-3">Rating</th>
+                          <th className="text-left py-2">Message</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {feedbackItems.map((item) => {
+                          const fromName = item.name || item.user?.name || "Anonymous";
+                          const fromEmail = item.email || item.user?.email || "-";
+                          return (
+                            <tr key={item.id} className="border-b border-[#212124]">
+                              <td className="py-2 pr-3 text-gray-300 whitespace-nowrap">
+                                {new Date(item.createdAt).toLocaleString()}
+                              </td>
+                              <td className="py-2 pr-3">
+                                <p className="text-gray-100">{fromName}</p>
+                                <p className="text-xs text-gray-400">{fromEmail}</p>
+                              </td>
+                              <td className="py-2 pr-3 text-gray-300">
+                                {item.rating ?? "-"}
+                              </td>
+                              <td className="py-2 text-gray-300">
+                                <p className="max-w-[420px] truncate" title={item.message}>
+                                  {item.message}
+                                </p>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

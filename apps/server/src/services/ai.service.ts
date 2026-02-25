@@ -10,7 +10,7 @@ type InitialCategorizationResult = {
   isFirstCategorization: boolean;
 };
 
-export const categorize_Initial_Emails = async (userId: string, limit: number = 30) => {
+export const categorize_Initial_Emails = async (userId: string, limit: number = 20) => {
   try {
     const categories = await prismaClient.customCategory.findMany({
       where: { userId },

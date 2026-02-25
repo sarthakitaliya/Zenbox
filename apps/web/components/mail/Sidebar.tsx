@@ -15,6 +15,7 @@ import {
   Plus,
   X,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { useUIStore, useUserStore } from "@repo/store";
 import Image from "next/image";
@@ -36,7 +37,7 @@ const bottomItems: {
   name: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-}[] = [];
+}[] = [{ name: "Settings", href: "/mail/settings", icon: Settings }];
     
 export default function Sidebar({ className }: { className?: string }) {
   const router = useRouter();

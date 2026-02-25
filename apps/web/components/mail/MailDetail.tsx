@@ -1,5 +1,5 @@
 import { useEmailStore, useUIStore, useUserStore } from "@repo/store";
-import { Archive, Reply, Send, Sparkles, Star, Trash2, X } from "lucide-react";
+import { Archive, Download, Reply, Send, Sparkles, Star, Trash2, X } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -117,6 +117,7 @@ export const MailDetail = () => {
     starThread,
     unstarThread,
     getEmails,
+    downloadAttachment,
   } = useEmailStore();
   const { user } = useUserStore();
   const { summarizeEmail, summariesByThread, summaryLoadingByThread } = useAiStore();
@@ -135,6 +136,7 @@ export const MailDetail = () => {
   const router = useRouter();
 
   const [openMessageIndex, setOpenMessageIndex] = useState<number>(-1);
+  const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (mailId && selectedThread?.threadId !== mailId) {
@@ -338,6 +340,39 @@ export const MailDetail = () => {
     setComposeMinimized(false);
   };
 
+  const formatAttachmentSize = (size: number) => {
+    if (!size || size <= 0) return "";
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const handleDownloadAttachment = async (params: {
+    messageId: string;
+    attachmentId: string;
+    filename: string;
+    mimeType: string;
+  }) => {
+    const downloadKey = `${params.messageId}:${params.attachmentId}`;
+
+    try {
+      setDownloadingAttachmentId(downloadKey);
+      const blob = await downloadAttachment(params);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = params.filename || "attachment";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error("Failed to download attachment");
+    } finally {
+      setDownloadingAttachmentId(null);
+    }
+  };
+
   const currentThreadId = selectedThread?.threadId || "";
   const summary = currentThreadId ? summariesByThread[currentThreadId] : "";
   const isSummarizing = currentThreadId
@@ -501,16 +536,68 @@ export const MailDetail = () => {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="email-html-body mt-3 overflow-x-auto px-2 text-sm leading-relaxed text-gray-200"
-                        ref={(node) => {
-                          if (node) {
-                            fixEmailContrast(node);
-                          }
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: email.body?.content ?? "",
-                        }}
-                      />
+                      >
+                        <div
+                          className="email-html-body mt-3 overflow-x-auto px-2 text-sm leading-relaxed text-gray-200"
+                          ref={(node) => {
+                            if (node) {
+                              fixEmailContrast(node);
+                            }
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: email.body?.content ?? "",
+                          }}
+                        />
+                        {email.attachments && email.attachments.length > 0 && (
+                          <div className="mt-4 rounded-lg border border-[#3f3f3f7a] bg-[#151515] p-3">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                              Attachments ({email.attachments.length})
+                            </p>
+                            <div className="space-y-2">
+                              {email.attachments.map((attachment) => {
+                                const downloadKey = `${email.id}:${attachment.attachmentId}`;
+                                const isDownloading =
+                                  downloadingAttachmentId === downloadKey;
+
+                                return (
+                                  <div
+                                    key={downloadKey}
+                                    className="flex items-center justify-between rounded-md border border-[#2f2f2f] bg-[#1a1a1a] px-3 py-2"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="truncate text-sm text-gray-200">
+                                        {attachment.filename}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {attachment.mimeType}
+                                        {attachment.size
+                                          ? ` • ${formatAttachmentSize(attachment.size)}`
+                                          : ""}
+                                      </p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleDownloadAttachment({
+                                          messageId: email.id,
+                                          attachmentId: attachment.attachmentId,
+                                          filename: attachment.filename,
+                                          mimeType: attachment.mimeType,
+                                        })
+                                      }
+                                      disabled={isDownloading}
+                                      className="inline-flex items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#222222] px-2.5 py-1.5 text-xs font-medium text-gray-200 transition hover:bg-[#2d2d2d] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                                    >
+                                      <Download className="h-3.5 w-3.5" />
+                                      {isDownloading ? "Downloading..." : "Download"}
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </motion.div>
                     )}
                   </AnimatePresence>
                 </div>

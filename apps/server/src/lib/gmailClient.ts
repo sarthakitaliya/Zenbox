@@ -67,6 +67,51 @@ export class gmailClient {
       throw new Error("Failed to list threads");
     }
   }
+
+  async listThreadsPaginated(
+    query: string,
+    maxResults: number = 50,
+    pageToken?: string
+  ): Promise<{ threads: any[]; nextPageToken: string | null }> {
+    try {
+      const response = await this.gmail.users.threads.list({
+        userId: "me",
+        q: query,
+        maxResults,
+        pageToken,
+      });
+
+      const threads = response.data.threads || [];
+
+      const parsedThreads = await Promise.all(
+        threads.map(async (thread: any) => {
+          const threadRes = await this.gmail.users.threads.get({
+            userId: "me",
+            id: thread.id,
+            format: "metadata",
+            metadataHeaders: ["Subject", "From", "To", "Date"],
+          });
+
+          const messages = threadRes.data.messages || [];
+          const lastMessage = messages[messages.length - 1];
+
+          return {
+            threadId: thread.id,
+            messageCount: messages.length,
+            latest: parseEmail(lastMessage),
+          };
+        })
+      );
+
+      return {
+        threads: parsedThreads,
+        nextPageToken: response.data.nextPageToken || null,
+      };
+    } catch (error) {
+      console.error("Error listing paginated threads:", error);
+      throw new Error("Failed to list paginated threads");
+    }
+  }
   async getThreadWithMessages(threadId: string) {
     try {
       const response = await this.gmail.users.threads.get({
@@ -160,6 +205,32 @@ export class gmailClient {
     } catch (error) {
       console.error("Error getting full message:", error);
       throw new Error("Failed to get full message");
+    }
+  }
+
+  async getAttachment(messageId: string, attachmentId: string) {
+    try {
+      const response = await this.gmail.users.messages.attachments.get({
+        userId: "me",
+        messageId,
+        id: attachmentId,
+      });
+
+      const data = response.data?.data || "";
+      if (!data) {
+        throw new Error("Attachment data not found");
+      }
+
+      const normalized = data.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized.padEnd(
+        normalized.length + ((4 - (normalized.length % 4)) % 4),
+        "="
+      );
+
+      return Buffer.from(padded, "base64");
+    } catch (error) {
+      console.error("Error getting attachment:", error);
+      throw new Error("Failed to get attachment");
     }
   }
 

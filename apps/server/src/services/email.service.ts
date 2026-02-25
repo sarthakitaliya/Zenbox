@@ -48,12 +48,20 @@ export const getEmailById = async (userId: string, threadId: string) => {
   }
 };
 
-export const getMergedInboxEmails = async (userId: string, query: string) => {
+export const getMergedInboxEmails = async (
+  userId: string,
+  query: string,
+  pageToken?: string
+) => {
   const gmail = new gmailClient();
   await gmail.init(userId);
 
-  const threads = await gmail.listThreads(query, 50); // metadata only
-  const gmailIds = threads.map(t => t.latest.id);
+  const { threads, nextPageToken } = await gmail.listThreadsPaginated(
+    query,
+    50,
+    pageToken
+  );
+  const gmailIds = threads.map((t) => t.latest.id);
   console.log("gmailIds:", gmailIds);
   
   const categorized = await prismaClient.mail.findMany({
@@ -74,11 +82,14 @@ export const getMergedInboxEmails = async (userId: string, query: string) => {
 
   const categoryMap = new Map(categorized.map(c => [c.gmailId, { name: c.category?.name ?? null, icon: c.category?.icon ?? null }]));
 
-  return threads.map(t => ({
-    latest: { ...t.latest },
-    threadId: t.threadId,
-    messageCount: t.messageCount,
-    categoryName: categoryMap.get(t.latest.id)?.name ?? null,
-    categoryIcon: categoryMap.get(t.latest.id)?.icon ?? null,
-  }));
+  return {
+    emails: threads.map((t) => ({
+      latest: { ...t.latest },
+      threadId: t.threadId,
+      messageCount: t.messageCount,
+      categoryName: categoryMap.get(t.latest.id)?.name ?? null,
+      categoryIcon: categoryMap.get(t.latest.id)?.icon ?? null,
+    })),
+    nextPageToken,
+  };
 };

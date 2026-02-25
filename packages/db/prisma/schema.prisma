@@ -24,6 +24,7 @@ model User {
   sessions          Session[]
   accounts          Account[]
   mails             Mail[]
+  feedbacks         Feedback[]
   categories        CustomCategory[]
   connectedAccounts ConnectedAccount[]
 
@@ -149,4 +150,20 @@ model AdminUser {
   updatedAt    DateTime @updatedAt
 
   @@map("admin_users")
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String?
+  email     String
+  message   String
+  rating    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([userId])
+  @@map("feedback")
 }

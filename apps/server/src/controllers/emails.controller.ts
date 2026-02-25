@@ -4,7 +4,7 @@ import { gmailClient } from "../lib/gmailClient";
 
 export const getEmails = async (req: Request, res: Response) => {
   try {
-    const { filter = "inbox" } = req.query;
+    const { filter = "inbox", pageToken } = req.query;
     
     const queryMap: Record<string, string> = {
       inbox: "in:inbox", 
@@ -16,10 +16,14 @@ export const getEmails = async (req: Request, res: Response) => {
       archive: "is:archived",
     };
     const gmailQuery = queryMap[filter as string] || "";
-    const emails = await emailService.getMergedInboxEmails(req.user.id, gmailQuery);
-    console.log("Fetched emails:", emails);
+    const result = await emailService.getMergedInboxEmails(
+      req.user.id,
+      gmailQuery,
+      typeof pageToken === "string" ? pageToken : undefined
+    );
+    console.log("Fetched emails:", result);
     
-    res.status(200).json(emails);
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: "Error fetching inbox emails" });
   }
@@ -173,5 +177,38 @@ export const replyEmail = async (req: Request, res: Response) => {
     res.status(200).json({ message: "Reply sent", data: result });
   } catch (error) {
     res.status(500).json({ message: "Failed to send reply" });
+  }
+};
+
+export const downloadAttachment = async (
+  req: Request<{}, {}, {}, { messageId?: string; attachmentId?: string; filename?: string; mimeType?: string }>,
+  res: Response
+) => {
+  const { messageId, attachmentId, filename, mimeType } = req.query;
+
+  if (!messageId || !attachmentId) {
+    res.status(400).json({ message: "messageId and attachmentId are required" });
+    return;
+  }
+
+  try {
+    const gmail = new gmailClient();
+    await gmail.init(req.user.id);
+    const fileBuffer = await gmail.getAttachment(messageId, attachmentId);
+
+    const safeFilename = (filename || "attachment").replace(/[^\w.\-() ]/g, "_");
+    const contentType =
+      typeof mimeType === "string" && mimeType.trim()
+        ? mimeType
+        : "application/octet-stream";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${safeFilename}"`
+    );
+    res.status(200).send(fileBuffer);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to download attachment" });
   }
 };

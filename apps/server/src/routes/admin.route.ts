@@ -6,6 +6,7 @@ import {
   logoutAdmin,
   registerAdmin,
 } from "../controllers/adminAuth.controller";
+import { getAdminFeedback } from "../controllers/feedback.controller";
 import { deleteUser, listUsers } from "../controllers/adminUsers.controller";
 import { getOverviewStats } from "../controllers/adminStats.controller";
 import { adminAuthMiddleware } from "../middleware/adminAuth.middleware";
@@ -19,6 +20,7 @@ router.post("/auth/logout", adminAuthMiddleware, logoutAdmin);
 router.get("/auth/me", adminAuthMiddleware, getAdminMe);
 
 router.get("/stats/overview", adminAuthMiddleware, getOverviewStats);
+router.get("/feedback", adminAuthMiddleware, getAdminFeedback);
 router.get("/users", adminAuthMiddleware, listUsers);
 router.delete("/users/:userId", adminAuthMiddleware, deleteUser);
 
