@@ -528,7 +528,7 @@ export const MailDetail = () => {
                     >
                       <iconData.icon className="w-3 h-3 text-white" />
                     </span>
-                    <span className="pointer-events-none absolute -top-8 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded bg-[#2a2a2a] px-2 py-1 text-[11px] font-medium text-gray-100 opacity-0 shadow transition group-hover:opacity-100">
+                    <span className="pointer-events-none absolute left-0 top-7 z-20 w-max max-w-56 rounded bg-[#2a2a2a] px-2 py-1 text-[11px] font-medium leading-tight text-gray-100 opacity-0 shadow transition group-hover:opacity-100 whitespace-normal break-words">
                       {categoryTooltipLabel}
                     </span>
                   </span>
